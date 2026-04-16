@@ -94,6 +94,66 @@
     "pendingBookings": "Függőben lévő foglalások",
     "todaySchedule": "Mai beosztás"
   },
+  "openingHours": {
+    "title": "Nyitvatartás",
+    "range": "Lőtér",
+    "weekday": "Nap",
+    "startTime": "Kezdés",
+    "endTime": "Befejezés",
+    "validFrom": "Érvényes ettől",
+    "validTo": "Érvényes eddig",
+    "add": "Hozzáadás",
+    "delete": "Törlés",
+    "saved": "Nyitvatartás mentve",
+    "days": ["Vasárnap", "Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat"]
+  },
+  "closures": {
+    "title": "Zárások",
+    "range": "Lőtér",
+    "allRanges": "Minden lőtér",
+    "startsAt": "Kezdés",
+    "endsAt": "Befejezés",
+    "reasonSk": "Ok (SK)",
+    "reasonHu": "Ok (HU)",
+    "add": "Zárás hozzáadása",
+    "delete": "Törlés",
+    "saved": "Zárás létrehozva"
+  },
+  "booking": {
+    "title": "Új foglalás",
+    "myBookings": "Foglalásaim",
+    "range": "Lőtér",
+    "date": "Dátum",
+    "startTime": "Kezdési idő",
+    "hours": "Órák száma",
+    "guestCount": "Vendégek száma",
+    "note": "Megjegyzés",
+    "submit": "Kérelem küldése",
+    "cancel": "Foglalás törlése",
+    "cancelConfirm": "Biztosan törölni szeretné ezt a foglalást?",
+    "submitted": "Foglalási kérelem elküldve",
+    "cancelled": "Foglalás törölve",
+    "slotTaken": "Ez az időpont már foglalt",
+    "outsideHours": "Nyitvatartási időn kívül",
+    "closedRange": "A lőtér ebben az időpontban zárva van",
+    "noBookings": "Nincsenek foglalások",
+    "newBooking": "Új foglalás",
+    "status": {
+      "requested": "Jóváhagyásra vár",
+      "approved": "Jóváhagyott",
+      "declined": "Elutasított",
+      "cancelled": "Törölt",
+      "checked_in": "Bejelentkezve",
+      "completed": "Befejezett",
+      "no_show": "Nem jelent meg"
+    }
+  },
+  "calendar": {
+    "title": "Elérhetőség",
+    "available": "Szabad",
+    "booked": "Foglalt",
+    "closed": "Zárva"
+  },
   "passwordReset": {
     "title": "Jelszó visszaállítása",
     "subtitle": "Adja meg e-mail címét a jelszó visszaállításához",

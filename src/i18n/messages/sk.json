@@ -94,6 +94,66 @@
     "pendingBookings": "Čakajúce rezervácie",
     "todaySchedule": "Dnešný rozvrh"
   },
+  "openingHours": {
+    "title": "Otváracie hodiny",
+    "range": "Strelnica",
+    "weekday": "Deň",
+    "startTime": "Od",
+    "endTime": "Do",
+    "validFrom": "Platné od",
+    "validTo": "Platné do",
+    "add": "Pridať",
+    "delete": "Odstrániť",
+    "saved": "Otváracie hodiny boli uložené",
+    "days": ["Nedeľa", "Pondelok", "Utorok", "Streda", "Štvrtok", "Piatok", "Sobota"]
+  },
+  "closures": {
+    "title": "Uzávierky",
+    "range": "Strelnica",
+    "allRanges": "Všetky strelnice",
+    "startsAt": "Začiatok",
+    "endsAt": "Koniec",
+    "reasonSk": "Dôvod (SK)",
+    "reasonHu": "Dôvod (HU)",
+    "add": "Pridať uzávierku",
+    "delete": "Odstrániť",
+    "saved": "Uzávierka bola vytvorená"
+  },
+  "booking": {
+    "title": "Nová rezervácia",
+    "myBookings": "Moje rezervácie",
+    "range": "Strelnica",
+    "date": "Dátum",
+    "startTime": "Čas začiatku",
+    "hours": "Počet hodín",
+    "guestCount": "Počet hostí",
+    "note": "Poznámka",
+    "submit": "Odoslať žiadosť",
+    "cancel": "Zrušiť rezerváciu",
+    "cancelConfirm": "Naozaj chcete zrušiť túto rezerváciu?",
+    "submitted": "Žiadosť o rezerváciu bola odoslaná",
+    "cancelled": "Rezervácia bola zrušená",
+    "slotTaken": "Tento termín je už obsadený",
+    "outsideHours": "Mimo otváracích hodín",
+    "closedRange": "Strelnica je v tomto termíne uzavretá",
+    "noBookings": "Žiadne rezervácie",
+    "newBooking": "Nová rezervácia",
+    "status": {
+      "requested": "Čaká na schválenie",
+      "approved": "Schválená",
+      "declined": "Zamietnutá",
+      "cancelled": "Zrušená",
+      "checked_in": "Prihlásený",
+      "completed": "Dokončená",
+      "no_show": "Neprišiel"
+    }
+  },
+  "calendar": {
+    "title": "Dostupnosť",
+    "available": "Voľné",
+    "booked": "Obsadené",
+    "closed": "Zatvorené"
+  },
   "passwordReset": {
     "title": "Obnovenie hesla",
     "subtitle": "Zadajte svoj e-mail na obnovenie hesla",
