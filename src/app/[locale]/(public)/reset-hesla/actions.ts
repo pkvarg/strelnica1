@@ -7,6 +7,8 @@ import { generateToken, hashToken } from "@/lib/tokens";
 import crypto from "crypto";
 import { writeAudit } from "@/lib/audit";
 import { notifyPasswordReset } from "@/lib/notify";
+import { rateLimit } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 
 export async function requestPasswordReset(
   _prev: { error?: string; success?: boolean } | null,
@@ -14,6 +16,11 @@ export async function requestPasswordReset(
 ) {
   const email = (formData.get("email") as string)?.trim().toLowerCase();
   if (!email) return { error: "Email is required" };
+
+  const hdrs = await headers();
+  const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const { allowed } = rateLimit(`reset:${ip}`, 3, 15 * 60 * 1000);
+  if (!allowed) return { success: true };
 
   const [user] = await db
     .select({ id: users.id })

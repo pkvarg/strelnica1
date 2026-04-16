@@ -10,6 +10,7 @@ import { revalidatePath } from "next/cache";
 import { getPgBoss } from "@/lib/pgboss";
 import { scheduleBookingExpiry } from "@/lib/jobs/booking-expiry";
 import { issueApprovalTokens } from "@/lib/approval-tokens";
+import { rateLimit } from "@/lib/rate-limit";
 
 interface BookingResult {
   error?: string;
@@ -22,6 +23,9 @@ export async function requestBooking(
 ): Promise<BookingResult> {
   const session = await auth();
   if (!session?.user) return { error: "Unauthorized" };
+
+  const { allowed } = rateLimit(`booking:${session.user.id}`, 5, 60 * 1000);
+  if (!allowed) return { error: "Too many requests" };
 
   const rangeId = formData.get("rangeId") as string;
   const date = formData.get("date") as string;

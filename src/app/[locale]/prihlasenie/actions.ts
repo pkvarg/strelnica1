@@ -6,6 +6,8 @@ import { writeAudit } from "@/lib/audit";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq, or } from "drizzle-orm";
+import { rateLimit } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 
 export async function loginAction(
   _prev: { error?: string } | null,
@@ -15,6 +17,13 @@ export async function loginAction(
   const password = formData.get("password") as string;
 
   if (!login || !password) {
+    return { error: "invalidCredentials" };
+  }
+
+  const hdrs = await headers();
+  const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const { allowed } = rateLimit(`login:${ip}`, 10, 15 * 60 * 1000);
+  if (!allowed) {
     return { error: "invalidCredentials" };
   }
 
