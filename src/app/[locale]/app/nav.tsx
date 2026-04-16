@@ -2,14 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { signOut } from "next-auth/react";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   CalendarCheck,
   User,
   BarChart3,
-  LogOut,
   ShieldCheck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -21,7 +19,6 @@ interface AppNavProps {
     bookings: string;
     profile: string;
     statistics: string;
-    logout: string;
   };
   locale: string;
 }
@@ -34,6 +31,26 @@ interface NavLink {
 
 export function AppNav({ user, labels, locale }: AppNavProps) {
   const pathname = usePathname();
+  const [pending, setPending] = useState<number>(0);
+
+  useEffect(() => {
+    if (user.role !== "admin") return;
+    let cancelled = false;
+    const load = () => {
+      fetch("/api/admin/pending-count", { cache: "no-store" })
+        .then((r) => r.json())
+        .then((d) => {
+          if (!cancelled) setPending(d.count ?? 0);
+        })
+        .catch(() => {});
+    };
+    load();
+    const id = setInterval(load, 30_000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [user.role]);
 
   const links: NavLink[] = [
     { href: `/${locale}/app`, label: labels.dashboard, icon: LayoutDashboard },
@@ -50,6 +67,22 @@ export function AppNav({ user, labels, locale }: AppNavProps) {
       </div>
 
       <div className="flex flex-1 flex-col gap-0.5">
+        {user.role === "admin" && (
+          <Link
+            href={`/${locale}/admin`}
+            className="mb-2 flex w-full items-center justify-between gap-2 rounded-md bg-amber-600/10 px-3 py-2 text-sm font-medium text-amber-500 transition-colors hover:bg-amber-600/20"
+          >
+            <span className="flex items-center gap-2">
+              <ShieldCheck size={14} />
+              Administrácia
+            </span>
+            {pending > 0 && (
+              <span className="rounded-full bg-amber-600 px-2 py-0.5 text-xs font-bold text-zinc-950">
+                {pending}
+              </span>
+            )}
+          </Link>
+        )}
         {links.map((link) => {
           const isActive = pathname === link.href;
           const Icon = link.icon;
@@ -70,26 +103,6 @@ export function AppNav({ user, labels, locale }: AppNavProps) {
         })}
       </div>
 
-      <div className="space-y-2 border-t border-zinc-800 pt-4">
-        {user.role === "admin" && (
-          <Link
-            href={`/${locale}/admin`}
-            className="flex w-full items-center gap-2 rounded-md bg-amber-600/10 px-3 py-2 text-sm font-medium text-amber-500 transition-colors hover:bg-amber-600/20"
-          >
-            <ShieldCheck size={14} />
-            Administrácia
-          </Link>
-        )}
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full justify-start gap-2 border-zinc-700 text-zinc-400 hover:text-zinc-200"
-          onClick={() => signOut({ callbackUrl: `/${locale}/prihlasenie` })}
-        >
-          <LogOut size={14} />
-          {labels.logout}
-        </Button>
-      </div>
     </nav>
   );
 }

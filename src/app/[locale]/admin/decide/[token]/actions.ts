@@ -7,6 +7,13 @@ import { hashToken } from "@/lib/tokens";
 import { invalidateSiblingTokens } from "@/lib/approval-tokens";
 import { writeAudit } from "@/lib/audit";
 import { getClientIp } from "@/lib/ip";
+import { notifyMemberBookingApproved, notifyMemberBookingDeclined } from "@/lib/notify";
+import { fmtDate, fmtTime } from "@/lib/format";
+import { getPgBoss } from "@/lib/pgboss";
+import { scheduleBookingReminder } from "@/lib/jobs/booking-reminder";
+import { scheduleNoShowSweep } from "@/lib/jobs/booking-noshow";
+import { scheduleAutoComplete } from "@/lib/jobs/booking-autocomplete";
+import { rateLimit } from "@/lib/rate-limit";
 
 interface DecideResult {
   error?: string;
@@ -19,6 +26,10 @@ export async function executeDecision(
   _prev: DecideResult | null,
   formData: FormData,
 ): Promise<DecideResult> {
+  const ip = (await getClientIp()) ?? "unknown";
+  const { allowed } = rateLimit(`decide:${ip}`, 10, 15 * 60 * 1000);
+  if (!allowed) return { error: "Too many attempts" };
+
   const reason = (formData.get("reason") as string) || null;
 
   const tokenHash = hashToken(token);
@@ -56,7 +67,6 @@ export async function executeDecision(
   }
 
   const newStatus = approvalToken.action === "approve" ? "approved" : "declined";
-  const ip = await getClientIp();
 
   await db
     .update(bookings)
@@ -84,9 +94,60 @@ export async function executeDecision(
     after: { status: newStatus, reason, ip },
   });
 
-  // TODO M4: enqueue notify.member.bookingApproved or bookingDeclined
+  await notifyMemberAfterDecision(booking.id, newStatus, reason).catch(console.error);
 
   return { success: true, action: newStatus };
+}
+
+async function notifyMemberAfterDecision(
+  bookingId: string,
+  newStatus: "approved" | "declined",
+  reason: string | null,
+) {
+  const [row] = await db
+    .select({
+      rangeId: bookings.rangeId,
+      startsAt: bookings.startsAt,
+      endsAt: bookings.endsAt,
+      userId: bookings.userId,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      email: users.email,
+      phone: users.phoneE164,
+      locale: users.locale,
+    })
+    .from(bookings)
+    .innerJoin(users, eq(bookings.userId, users.id))
+    .where(eq(bookings.id, bookingId))
+    .limit(1);
+
+  if (!row) return;
+
+  const common = {
+    email: row.email,
+    phone: row.phone,
+    memberName: `${row.firstName} ${row.lastName}`,
+    rangeId: row.rangeId,
+    date: fmtDate(row.startsAt),
+    time: fmtTime(row.startsAt),
+    locale: row.locale,
+    bookingId,
+    userId: row.userId,
+  };
+
+  if (newStatus === "approved") {
+    await notifyMemberBookingApproved(common);
+    try {
+      const boss = getPgBoss();
+      await scheduleBookingReminder(boss, bookingId, row.startsAt);
+      await scheduleNoShowSweep(boss, bookingId, row.startsAt);
+      await scheduleAutoComplete(boss, bookingId, row.endsAt);
+    } catch (e) {
+      console.error("[decide] pg-boss scheduling failed:", e);
+    }
+  } else {
+    await notifyMemberBookingDeclined({ ...common, reason });
+  }
 }
 
 export async function getTokenDetails(token: string) {

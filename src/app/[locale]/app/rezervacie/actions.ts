@@ -2,7 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { bookings } from "@/db/schema";
+import { bookings, users } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { isWithinOpeningHours, isClosedDuring } from "@/lib/availability";
 import { writeAudit } from "@/lib/audit";
@@ -11,6 +11,8 @@ import { getPgBoss } from "@/lib/pgboss";
 import { scheduleBookingExpiry } from "@/lib/jobs/booking-expiry";
 import { issueApprovalTokens } from "@/lib/approval-tokens";
 import { rateLimit } from "@/lib/rate-limit";
+import { notifyAdminsBookingRequest, notifyMemberBookingCancelled } from "@/lib/notify";
+import { fmtDate, fmtTime } from "@/lib/format";
 
 interface BookingResult {
   error?: string;
@@ -36,6 +38,10 @@ export async function requestBooking(
 
   if (!rangeId || !date || !startTime) {
     return { error: "All fields are required" };
+  }
+
+  if (!/^\d{2}:00$/.test(startTime)) {
+    return { error: "Start time must be a whole hour" };
   }
 
   const startsAt = new Date(`${date}T${startTime}`);
@@ -83,8 +89,58 @@ export async function requestBooking(
     } catch {
       // pg-boss may not be started yet in dev; booking still created
     }
-    await issueApprovalTokens(booking.id);
-    // TODO M4: enqueue notify.admins.bookingRequest (email with approve/decline links)
+    const adminTokens = await issueApprovalTokens(booking.id);
+
+    try {
+      const [member] = await db
+        .select({
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          locale: users.locale,
+        })
+        .from(users)
+        .where(eq(users.id, session.user.id))
+        .limit(1);
+
+      const adminRows = await db
+        .select({ id: users.id, email: users.email, phoneE164: users.phoneE164 })
+        .from(users)
+        .where(eq(users.role, "admin"));
+
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const locale = member?.locale || "sk";
+
+      const admins = adminRows.map((a) => {
+        const approveToken = adminTokens.find(
+          (t) => t.adminUserId === a.id && t.action === "approve",
+        )?.token;
+        const declineToken = adminTokens.find(
+          (t) => t.adminUserId === a.id && t.action === "decline",
+        )?.token;
+        return {
+          email: a.email,
+          phone: a.phoneE164,
+          approveUrl: `${appUrl}/${locale}/admin/decide/${approveToken}`,
+          declineUrl: `${appUrl}/${locale}/admin/decide/${declineToken}`,
+        };
+      });
+
+      await notifyAdminsBookingRequest({
+        memberName: member ? `${member.firstName} ${member.lastName}` : "—",
+        memberEmail: member?.email || "",
+        rangeId,
+        date: fmtDate(startsAt),
+        time: fmtTime(startsAt),
+        guestCount,
+        note: userNote,
+        admins,
+        locale,
+        bookingId: booking.id,
+      }).catch(console.error);
+    } catch (e) {
+      console.error("[requestBooking] admin notify failed:", e);
+    }
 
     revalidatePath("/app/rezervacie");
     return { success: true };
@@ -100,6 +156,9 @@ export async function requestBooking(
 export async function cancelBooking(bookingId: string) {
   const session = await auth();
   if (!session?.user) throw new Error("Unauthorized");
+
+  const { allowed } = rateLimit(`cancel:${session.user.id}`, 20, 60 * 60 * 1000);
+  if (!allowed) throw new Error("Too many requests");
 
   const [booking] = await db
     .select()
@@ -128,6 +187,37 @@ export async function cancelBooking(bookingId: string) {
     before: { status: booking.status },
     after: { status: "cancelled" },
   });
+
+  try {
+    const [member] = await db
+      .select({
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phoneE164: users.phoneE164,
+        locale: users.locale,
+      })
+      .from(users)
+      .where(eq(users.id, session.user.id))
+      .limit(1);
+
+    if (member) {
+      await notifyMemberBookingCancelled({
+        email: member.email,
+        phone: member.phoneE164,
+        memberName: `${member.firstName} ${member.lastName}`,
+        rangeId: booking.rangeId,
+        date: fmtDate(booking.startsAt),
+        time: fmtTime(booking.startsAt),
+        cancelledBy: "member",
+        locale: member.locale,
+        bookingId,
+        userId: session.user.id,
+      }).catch(console.error);
+    }
+  } catch (e) {
+    console.error("[cancelBooking] notify failed:", e);
+  }
 
   revalidatePath("/app/rezervacie");
 }

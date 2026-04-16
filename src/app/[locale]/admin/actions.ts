@@ -2,12 +2,17 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { bookings } from "@/db/schema";
+import { bookings, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { writeAudit } from "@/lib/audit";
-import { invalidateSiblingTokens } from "@/lib/approval-tokens";
 import { adminApprovalTokens } from "@/db/schema";
 import { revalidatePath } from "next/cache";
+import { notifyMemberBookingApproved, notifyMemberBookingDeclined } from "@/lib/notify";
+import { fmtDate, fmtTime } from "@/lib/format";
+import { getPgBoss } from "@/lib/pgboss";
+import { scheduleBookingReminder } from "@/lib/jobs/booking-reminder";
+import { scheduleNoShowSweep } from "@/lib/jobs/booking-noshow";
+import { scheduleAutoComplete } from "@/lib/jobs/booking-autocomplete";
 
 async function decideBookingInline(
   bookingId: string,
@@ -60,9 +65,60 @@ async function decideBookingInline(
     after: { status: newStatus, reason },
   });
 
-  // TODO M4: enqueue notify.member.bookingApproved or bookingDeclined
+  await notifyMemberAfterInlineDecision(bookingId, newStatus, reason ?? null).catch(console.error);
 
   revalidatePath("/admin");
+}
+
+async function notifyMemberAfterInlineDecision(
+  bookingId: string,
+  newStatus: "approved" | "declined",
+  reason: string | null,
+) {
+  const [row] = await db
+    .select({
+      rangeId: bookings.rangeId,
+      startsAt: bookings.startsAt,
+      endsAt: bookings.endsAt,
+      userId: bookings.userId,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      email: users.email,
+      phone: users.phoneE164,
+      locale: users.locale,
+    })
+    .from(bookings)
+    .innerJoin(users, eq(bookings.userId, users.id))
+    .where(eq(bookings.id, bookingId))
+    .limit(1);
+
+  if (!row) return;
+
+  const common = {
+    email: row.email,
+    phone: row.phone,
+    memberName: `${row.firstName} ${row.lastName}`,
+    rangeId: row.rangeId,
+    date: fmtDate(row.startsAt),
+    time: fmtTime(row.startsAt),
+    locale: row.locale,
+    bookingId,
+    userId: row.userId,
+  };
+
+  if (newStatus === "approved") {
+    await notifyMemberBookingApproved(common);
+    try {
+      const boss = getPgBoss();
+      await scheduleBookingReminder(boss, bookingId, row.startsAt);
+      await scheduleNoShowSweep(boss, bookingId, row.startsAt);
+      await scheduleAutoComplete(boss, bookingId, row.endsAt);
+    } catch (e) {
+      console.error("[inline decide] pg-boss scheduling failed:", e);
+    }
+  } else {
+    await notifyMemberBookingDeclined({ ...common, reason });
+  }
 }
 
 export async function approveBookingInline(bookingId: string) {

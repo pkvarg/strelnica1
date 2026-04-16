@@ -1,6 +1,15 @@
 import { db } from "@/db";
 import { notificationsLog } from "@/db/schema";
+import { shouldSendSms, type Audience } from "@/lib/settings";
 import crypto from "crypto";
+
+async function phoneIfAllowed(
+  audience: Audience,
+  phone: string | null | undefined,
+): Promise<string | undefined> {
+  if (!phone) return undefined;
+  return (await shouldSendSms(audience)) ? phone : undefined;
+}
 
 const HONO_URL = process.env.NEXT_PUBLIC_HONO_API_URL || "https://hono.pictusweb.sk";
 const API_TOKEN = process.env.STRELNICA_API_TOKEN || "";
@@ -139,15 +148,14 @@ export async function notifyAdminsBookingRequest(opts: {
   time: string;
   guestCount: number;
   note: string | null;
-  approveUrl: string;
-  declineUrl: string;
-  adminEmails: string[];
+  admins: { email: string; phone: string; approveUrl: string; declineUrl: string }[];
   locale: string;
   bookingId: string;
 }) {
-  for (const email of opts.adminEmails) {
+  for (const admin of opts.admins) {
     const result = await callHono("booking-request-admin", {
-      email,
+      email: admin.email,
+      phone: await phoneIfAllowed("admin", admin.phone),
       memberName: opts.memberName,
       memberEmail: opts.memberEmail,
       rangeId: opts.rangeId,
@@ -155,14 +163,14 @@ export async function notifyAdminsBookingRequest(opts: {
       time: opts.time,
       guestCount: opts.guestCount,
       note: opts.note,
-      approveUrl: opts.approveUrl,
-      declineUrl: opts.declineUrl,
+      approveUrl: admin.approveUrl,
+      declineUrl: admin.declineUrl,
       locale: opts.locale,
     });
 
     await logNotification({
       channel: "email",
-      to: email,
+      to: admin.email,
       template: "booking_request_admin",
       locale: opts.locale,
       bookingId: opts.bookingId,
@@ -185,6 +193,7 @@ export async function notifyMemberBookingApproved(opts: {
 }) {
   const emailResult = await callHono("booking-approved", {
     email: opts.email,
+    phone: await phoneIfAllowed("member", opts.phone),
     memberName: opts.memberName,
     rangeId: opts.rangeId,
     date: opts.date,
@@ -208,6 +217,7 @@ export async function notifyMemberBookingApproved(opts: {
 
 export async function notifyMemberBookingDeclined(opts: {
   email: string;
+  phone: string;
   memberName: string;
   rangeId: string;
   date: string;
@@ -219,6 +229,7 @@ export async function notifyMemberBookingDeclined(opts: {
 }) {
   const result = await callHono("booking-declined", {
     email: opts.email,
+    phone: await phoneIfAllowed("member", opts.phone),
     memberName: opts.memberName,
     rangeId: opts.rangeId,
     date: opts.date,
@@ -255,6 +266,7 @@ export async function notifyBookingReminder(opts: {
 }) {
   const emailResult = await callHono("booking-reminder", {
     email: opts.email,
+    phone: await phoneIfAllowed("member", opts.phone),
     memberName: opts.memberName,
     rangeId: opts.rangeId,
     date: opts.date,
@@ -295,6 +307,134 @@ export async function notifyPasswordReset(opts: {
     channel: "email",
     to: opts.email,
     template: "password_reset",
+    locale: opts.locale,
+    userId: opts.userId,
+    status: result.success ? "sent" : "failed",
+    providerResponse: result,
+  });
+
+  return result;
+}
+
+export async function notifyMemberBookingCancelled(opts: {
+  email: string;
+  phone: string;
+  memberName: string;
+  rangeId: string;
+  date: string;
+  time: string;
+  cancelledBy: "member" | "admin";
+  locale: string;
+  bookingId: string;
+  userId: string;
+}) {
+  const result = await callHono("booking-cancelled", {
+    email: opts.email,
+    phone: await phoneIfAllowed("member", opts.phone),
+    memberName: opts.memberName,
+    rangeId: opts.rangeId,
+    date: opts.date,
+    time: opts.time,
+    cancelledBy: opts.cancelledBy,
+    locale: opts.locale,
+  });
+
+  await logNotification({
+    channel: "email",
+    to: opts.email,
+    template: "booking_cancelled",
+    locale: opts.locale,
+    bookingId: opts.bookingId,
+    userId: opts.userId,
+    status: result.success ? "sent" : "failed",
+    providerResponse: result,
+  });
+
+  return result;
+}
+
+export async function notifyNoShow(opts: {
+  email: string;
+  phone: string;
+  memberName: string;
+  rangeId: string;
+  date: string;
+  locale: string;
+  bookingId: string;
+  userId: string;
+}) {
+  const result = await callHono("no-show", {
+    email: opts.email,
+    phone: await phoneIfAllowed("member", opts.phone),
+    memberName: opts.memberName,
+    rangeId: opts.rangeId,
+    date: opts.date,
+    locale: opts.locale,
+  });
+
+  await logNotification({
+    channel: "email",
+    to: opts.email,
+    template: "no_show",
+    locale: opts.locale,
+    bookingId: opts.bookingId,
+    userId: opts.userId,
+    status: result.success ? "sent" : "failed",
+    providerResponse: result,
+  });
+
+  return result;
+}
+
+export async function notifyLicenseExpiring(opts: {
+  email: string;
+  phone: string;
+  memberName: string;
+  daysLeft: number;
+  locale: string;
+  userId: string;
+}) {
+  const result = await callHono("license-expiring", {
+    email: opts.email,
+    phone: await phoneIfAllowed("member", opts.phone),
+    memberName: opts.memberName,
+    daysLeft: opts.daysLeft,
+    locale: opts.locale,
+  });
+
+  await logNotification({
+    channel: "email",
+    to: opts.email,
+    template: "license_expiring",
+    locale: opts.locale,
+    userId: opts.userId,
+    status: result.success ? "sent" : "failed",
+    providerResponse: result,
+  });
+
+  return result;
+}
+
+export async function notifyMembershipReminder(opts: {
+  email: string;
+  phone: string;
+  memberName: string;
+  year: number;
+  locale: string;
+  userId: string;
+}) {
+  const result = await callHono("membership-reminder", {
+    email: opts.email,
+    phone: await phoneIfAllowed("member", opts.phone),
+    memberName: opts.memberName,
+    year: opts.year,
+    locale: opts.locale,
+  });
+
+  await logNotification({
+    channel: "email",
+    to: opts.email,
+    template: "membership_reminder",
     locale: opts.locale,
     userId: opts.userId,
     status: result.success ? "sent" : "failed",

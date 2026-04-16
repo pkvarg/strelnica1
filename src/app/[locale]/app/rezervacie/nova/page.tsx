@@ -52,7 +52,19 @@ export default function NewBookingPage() {
 
         <div className="space-y-2">
           <Label>{t("startTime")}</Label>
-          <Input name="startTime" type="time" required />
+          <select
+            name="startTime"
+            className="w-full rounded-md border px-3 py-2 text-sm"
+            defaultValue="09:00"
+            required
+          >
+            {Array.from({ length: 17 }, (_, i) => {
+              const h = (i + 6).toString().padStart(2, "0") + ":00";
+              return (
+                <option key={h} value={h}>{h}</option>
+              );
+            })}
+          </select>
         </div>
 
         <div className="space-y-2">

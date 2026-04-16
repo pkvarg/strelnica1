@@ -6,6 +6,8 @@ import { eq } from "drizzle-orm";
 import { hashToken } from "@/lib/tokens";
 import argon2 from "argon2";
 import { writeAudit } from "@/lib/audit";
+import { rateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/ip";
 
 interface AcceptResult {
   error?: string;
@@ -17,6 +19,10 @@ export async function acceptInvitation(
   _prev: AcceptResult | null,
   formData: FormData,
 ): Promise<AcceptResult> {
+  const ip = (await getClientIp()) ?? "unknown";
+  const { allowed } = rateLimit(`accept-invite:${ip}`, 10, 15 * 60 * 1000);
+  if (!allowed) return { error: "Too many attempts" };
+
   const password = formData.get("password") as string;
   const confirmPassword = formData.get("confirmPassword") as string;
   const gdprConsent = formData.get("gdprConsent") === "on";

@@ -23,7 +23,9 @@
     "membership": "Členstvo",
     "openingHours": "Otváracie hodiny",
     "closures": "Uzávierky",
-    "audit": "Audit log"
+    "audit": "Audit log",
+    "administration": "Administrácia",
+    "myAccount": "Môj účet"
   },
   "landing": {
     "title": "Strelnica",

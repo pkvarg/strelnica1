@@ -23,7 +23,9 @@
     "membership": "Tagság",
     "openingHours": "Nyitvatartás",
     "closures": "Zárások",
-    "audit": "Audit napló"
+    "audit": "Audit napló",
+    "administration": "Adminisztráció",
+    "myAccount": "Fiókom"
   },
   "landing": {
     "title": "Lőtér",

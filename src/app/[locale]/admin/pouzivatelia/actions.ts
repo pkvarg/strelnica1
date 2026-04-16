@@ -9,6 +9,7 @@ import { encrypt } from "@/lib/encryption";
 import { writeAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { notifyInvitation } from "@/lib/notify";
+import { rateLimit } from "@/lib/rate-limit";
 
 const INVITATION_TTL_MS = 72 * 60 * 60 * 1000;
 
@@ -26,6 +27,9 @@ export async function inviteMember(
   if (!session?.user || session.user.role !== "admin") {
     return { error: "Unauthorized" };
   }
+
+  const { allowed } = rateLimit(`invite:${session.user.id}`, 10, 15 * 60 * 1000);
+  if (!allowed) return { error: "Too many invitations; slow down" };
 
   const email = (formData.get("email") as string)?.trim().toLowerCase();
   const phone = (formData.get("phone") as string)?.trim();
@@ -89,6 +93,125 @@ export async function inviteMember(
   revalidatePath("/admin/pouzivatelia");
 
   return { success: true, invitationUrl };
+}
+
+interface EditResult {
+  error?: string;
+  success?: boolean;
+}
+
+export async function updateUserAdmin(
+  userId: string,
+  _prev: EditResult | null,
+  formData: FormData,
+): Promise<EditResult> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { error: "Unauthorized" };
+  }
+
+  const { allowed } = rateLimit(`admin-edit-user:${session.user.id}`, 30, 15 * 60 * 1000);
+  if (!allowed) return { error: "Too many requests" };
+
+  const [before] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!before) return { error: "User not found" };
+
+  const firstName = (formData.get("firstName") as string)?.trim();
+  const lastName = (formData.get("lastName") as string)?.trim();
+  const email = (formData.get("email") as string)?.trim().toLowerCase();
+  const phone = (formData.get("phone") as string)?.trim();
+  const birthDate = (formData.get("birthDate") as string)?.trim() || null;
+  const birthPlace = (formData.get("birthPlace") as string)?.trim() || null;
+  const addressStreet = (formData.get("addressStreet") as string)?.trim() || null;
+  const addressCity = (formData.get("addressCity") as string)?.trim() || null;
+  const addressZip = (formData.get("addressZip") as string)?.trim() || null;
+  const addressCountry = (formData.get("addressCountry") as string)?.trim() || null;
+  const locale = (formData.get("locale") as string) === "hu" ? "hu" : "sk";
+  const role = (formData.get("role") as string) === "admin" ? "admin" : "member";
+  const notesAdmin = (formData.get("notesAdmin") as string)?.trim() || null;
+
+  if (!firstName || !lastName || !email || !phone) {
+    return { error: "Name, email and phone are required" };
+  }
+
+  // Prevent email / phone collisions with other users
+  if (email !== before.email) {
+    const [collision] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+    if (collision && collision.id !== userId) {
+      return { error: "Email already in use" };
+    }
+  }
+  if (phone !== before.phoneE164) {
+    const [collision] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.phoneE164, phone))
+      .limit(1);
+    if (collision && collision.id !== userId) {
+      return { error: "Phone already in use" };
+    }
+  }
+
+  // Admin demoting themselves from admin would lock everyone out; guard.
+  if (before.id === session.user.id && role !== "admin") {
+    return { error: "You cannot remove your own admin role" };
+  }
+
+  await db
+    .update(users)
+    .set({
+      firstName,
+      lastName,
+      email,
+      phoneE164: phone,
+      birthDate,
+      birthPlace,
+      addressStreet,
+      addressCity,
+      addressZip,
+      addressCountry,
+      locale,
+      role,
+      notesAdmin,
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, userId));
+
+  await writeAudit({
+    actorUserId: session.user.id,
+    action: "admin_edit_user",
+    entityType: "user",
+    entityId: userId,
+    before: {
+      firstName: before.firstName,
+      lastName: before.lastName,
+      email: before.email,
+      phoneE164: before.phoneE164,
+      role: before.role,
+      locale: before.locale,
+    },
+    after: {
+      firstName,
+      lastName,
+      email,
+      phoneE164: phone,
+      role,
+      locale,
+    },
+  });
+
+  revalidatePath(`/admin/pouzivatelia/${userId}`);
+  revalidatePath("/admin/pouzivatelia");
+  return { success: true };
 }
 
 export async function setUserStatus(

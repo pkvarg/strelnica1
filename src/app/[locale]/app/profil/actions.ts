@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import { writeAudit } from "@/lib/audit";
 import { encrypt } from "@/lib/encryption";
 import { revalidatePath } from "next/cache";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function updateProfile(
   _prev: { error?: string; success?: boolean } | null,
@@ -14,6 +15,9 @@ export async function updateProfile(
 ) {
   const session = await auth();
   if (!session?.user) return { error: "Unauthorized" };
+
+  const { allowed } = rateLimit(`profile:${session.user.id}`, 15, 60 * 60 * 1000);
+  if (!allowed) return { error: "Too many requests" };
 
   const [before] = await db
     .select()

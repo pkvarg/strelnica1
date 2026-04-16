@@ -45,3 +45,8 @@ idea.md
 plan1.md
 recommend.md
 plan1-deviations.md
+external.md
+plan3.md
+tests.md
+scripts/backup.sh
+scripts/restore-test.sh

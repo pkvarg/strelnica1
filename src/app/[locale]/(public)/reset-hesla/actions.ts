@@ -60,6 +60,10 @@ export async function resetPassword(
   _prev: { error?: string; success?: boolean } | null,
   formData: FormData,
 ) {
+  const ip = (await getClientIp()) ?? "unknown";
+  const { allowed } = rateLimit(`reset-confirm:${ip}`, 5, 15 * 60 * 1000);
+  if (!allowed) return { error: "Too many attempts" };
+
   const password = formData.get("password") as string;
   const confirmPassword = formData.get("confirmPassword") as string;
 

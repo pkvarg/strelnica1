@@ -8,6 +8,7 @@ import { fmtDate, fmtDateTime } from "@/lib/format";
 import { UserActions } from "./user-actions";
 import { LicenseForm } from "./license-form";
 import { LicenseVerifyButton } from "./license-verify-button";
+import { EditUserForm } from "./edit-form";
 
 export default async function UserDetailPage({
   params,
@@ -85,6 +86,23 @@ export default async function UserDetailPage({
         </div>
 
         <UserActions userId={user.id} status={user.status} />
+
+        <EditUserForm
+          userId={user.id}
+          firstName={user.firstName}
+          lastName={user.lastName}
+          email={user.email}
+          phone={user.phoneE164}
+          birthDate={user.birthDate}
+          birthPlace={user.birthPlace}
+          addressStreet={user.addressStreet}
+          addressCity={user.addressCity}
+          addressZip={user.addressZip}
+          addressCountry={user.addressCountry}
+          locale={user.locale}
+          role={user.role}
+          notesAdmin={user.notesAdmin}
+        />
 
         {/* Zbrojny preukaz — read-only overview */}
         <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">

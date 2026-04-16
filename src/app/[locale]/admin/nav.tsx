@@ -16,6 +16,7 @@ import {
   MessageSquare,
   FileCheck,
   Shield,
+  Settings,
   ExternalLink,
   LogOut,
 } from "lucide-react";
@@ -86,6 +87,7 @@ export function AdminNav({ user, labels, locale }: AdminNavProps) {
         { href: `/${locale}/admin/kontakt-log`, label: "Kontakt log", icon: MessageSquare },
         { href: `/${locale}/admin/suhlasy`, label: "Súhlasy", icon: FileCheck },
         { href: `/${locale}/admin/rate-limits`, label: "Rate Limits", icon: Shield },
+        { href: `/${locale}/admin/nastavenia`, label: "Nastavenia", icon: Settings },
       ],
     },
   ];

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { Bell } from "lucide-react";
 
 function CrosshairIcon() {
   return (
@@ -33,6 +35,44 @@ function LanguageSwitcher() {
       <span className={locale === "sk" ? "text-amber-500" : "text-zinc-500"}>SK</span>
       <span className="text-zinc-600">/</span>
       <span className={locale === "hu" ? "text-amber-500" : "text-zinc-500"}>HU</span>
+    </Link>
+  );
+}
+
+function PendingBadge({ locale }: { locale: string }) {
+  const [count, setCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = () => {
+      fetch("/api/admin/pending-count", { cache: "no-store" })
+        .then((r) => r.json())
+        .then((d) => {
+          if (!cancelled) setCount(d.count ?? 0);
+        })
+        .catch(() => {});
+    };
+    load();
+    const id = setInterval(load, 30_000);
+    const onFocus = () => load();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, []);
+
+  if (!count || count <= 0) return null;
+
+  return (
+    <Link
+      href={`/${locale}/admin`}
+      className="flex items-center gap-1.5 rounded-md border border-amber-600/60 bg-amber-600/10 px-2.5 py-1 text-xs font-semibold text-amber-400 transition-colors hover:bg-amber-600/20"
+      title={`${count} žiadostí čaká na schválenie`}
+    >
+      <Bell size={14} />
+      {count}
     </Link>
   );
 }
@@ -72,6 +112,7 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
+          {session?.user?.role === "admin" && <PendingBadge locale={locale} />}
           <LanguageSwitcher />
           {session?.user ? (
             <button

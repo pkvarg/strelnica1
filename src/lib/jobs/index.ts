@@ -4,6 +4,12 @@ import { registerBookingReminderHandler } from "./booking-reminder";
 import { registerNoShowHandler } from "./booking-noshow";
 import { registerAutoCompleteHandler } from "./booking-autocomplete";
 import { registerRetentionSweepHandler, scheduleRetentionSweep } from "./retention-sweep";
+import { registerLicenseExpiryHandler, scheduleLicenseExpiry } from "./license-expiry";
+import {
+  registerMembershipRolloverHandler,
+  registerMembershipReminderHandler,
+  scheduleMembershipCrons,
+} from "./membership";
 
 let registered = false;
 
@@ -16,7 +22,13 @@ export async function registerAllJobs() {
   registerNoShowHandler(boss);
   registerAutoCompleteHandler(boss);
   registerRetentionSweepHandler(boss);
+  registerLicenseExpiryHandler(boss);
+  registerMembershipRolloverHandler(boss);
+  registerMembershipReminderHandler(boss);
+
   await scheduleRetentionSweep(boss);
+  await scheduleLicenseExpiry(boss);
+  await scheduleMembershipCrons(boss);
 
   registered = true;
 }

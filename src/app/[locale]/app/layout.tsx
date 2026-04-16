@@ -51,7 +51,6 @@ export default async function AppLayout({
           bookings: t("bookings"),
           profile: t("profile"),
           statistics: t("statistics"),
-          logout: t("logout"),
         }}
         locale={locale}
       />

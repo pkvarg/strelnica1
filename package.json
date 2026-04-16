@@ -11,7 +11,8 @@
     "db:migrate": "tsx src/db/migrate.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "seed:admin": "tsx src/db/seed-admin.ts"
+    "seed:admin": "tsx src/db/seed-admin.ts",
+    "test:booking-race": "tsx scripts/load-test-booking-race.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",
@@ -19,6 +20,7 @@
     "@react-email/components": "^1.0.12",
     "@react-email/render": "^2.0.6",
     "@react-pdf/renderer": "^4.5.1",
+    "@sentry/nextjs": "^10.49.0",
     "argon2": "^0.44.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -1,6 +1,8 @@
 import { db } from "@/db";
 import { bookings, users } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
+import { notifyNoShow } from "@/lib/notify";
+import { fmtDate } from "@/lib/format";
 import type { PgBoss } from "pg-boss";
 
 export const BOOKING_NOSHOW_SWEEP = "booking.noShowSweep";
@@ -10,18 +12,41 @@ export function registerNoShowHandler(boss: PgBoss) {
     for (const job of jobs) {
       const { bookingId } = job.data;
 
-      const [booking] = await db
-        .select({ id: bookings.id, status: bookings.status })
+      const [row] = await db
+        .select({
+          id: bookings.id,
+          status: bookings.status,
+          rangeId: bookings.rangeId,
+          startsAt: bookings.startsAt,
+          userId: bookings.userId,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phoneE164,
+          locale: users.locale,
+        })
         .from(bookings)
+        .innerJoin(users, eq(bookings.userId, users.id))
         .where(and(eq(bookings.id, bookingId), eq(bookings.status, "approved")))
         .limit(1);
 
-      if (!booking) continue;
+      if (!row) continue;
 
       await db
         .update(bookings)
         .set({ status: "no_show" })
         .where(eq(bookings.id, bookingId));
+
+      await notifyNoShow({
+        email: row.email,
+        phone: row.phone,
+        memberName: `${row.firstName} ${row.lastName}`,
+        rangeId: row.rangeId,
+        date: fmtDate(row.startsAt),
+        locale: row.locale,
+        bookingId,
+        userId: row.userId,
+      }).catch(console.error);
     }
   });
 }
