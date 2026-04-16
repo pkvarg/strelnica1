@@ -7,7 +7,7 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq, or } from "drizzle-orm";
 import { rateLimit } from "@/lib/rate-limit";
-import { headers } from "next/headers";
+import { getClientIp } from "@/lib/ip";
 
 export async function loginAction(
   _prev: { error?: string } | null,
@@ -20,8 +20,7 @@ export async function loginAction(
     return { error: "invalidCredentials" };
   }
 
-  const hdrs = await headers();
-  const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const ip = await getClientIp() ?? "unknown";
   const { allowed } = rateLimit(`login:${ip}`, 10, 15 * 60 * 1000);
   if (!allowed) {
     return { error: "invalidCredentials" };

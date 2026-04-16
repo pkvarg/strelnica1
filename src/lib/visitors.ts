@@ -25,3 +25,15 @@ export async function incrementBots() {
     console.error("Failed to increment bots:", e);
   }
 }
+
+export async function incrementEmails() {
+  try {
+    await fetch(`${HONO_URL}/api/emails/strelnica/increase`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+  } catch (e) {
+    console.error("Failed to increment emails:", e);
+  }
+}

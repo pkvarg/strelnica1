@@ -18,13 +18,19 @@ export const metadata: Metadata = {
   description: "Rezervačný systém strelnice",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
+  params,
 }: Readonly<{
   children: React.ReactNode;
+  params?: Promise<{ locale?: string }>;
 }>) {
+  const resolvedParams = params ? await params : {};
+  const lang = resolvedParams.locale || "sk";
+
   return (
     <html
+      lang={lang}
       className={`${dmSans.variable} ${bebasNeue.variable} h-full dark`}
       suppressHydrationWarning
     >

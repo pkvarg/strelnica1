@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+const ZP_CATEGORIES = ["A", "B", "C", "D", "E", "F"] as const;
+
 export default function ProfilePage() {
   const t = useTranslations("profile");
   const [state, formAction, isPending] = useActionState(updateProfile, null);
@@ -20,12 +22,14 @@ export default function ProfilePage() {
 
   if (!user) return <p>{t("title")}...</p>;
 
+  const isVerified = !!user.zbrojnyPreukazVerifiedAt;
+
   return (
     <div className="max-w-2xl">
       <h1 className="text-2xl font-bold">{t("title")}</h1>
 
       {state?.success && (
-        <p className="mt-2 text-sm text-green-700">{t("updated")}</p>
+        <p className="mt-2 text-sm text-emerald-400">{t("updated")}</p>
       )}
 
       <form action={formAction} className="mt-6 space-y-4">
@@ -72,6 +76,64 @@ export default function ProfilePage() {
           <div className="space-y-2">
             <Label>{t("country")}</Label>
             <Input name="addressCountry" defaultValue={user.addressCountry ?? ""} />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 pt-4">
+          <h2 className="text-lg font-semibold">{t("license")}</h2>
+          {isVerified ? (
+            <span className="rounded-full bg-emerald-900/40 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
+              Overený
+            </span>
+          ) : user.zbrojnyPreukazCategory ? (
+            <span className="rounded-full bg-amber-900/40 px-2.5 py-0.5 text-xs font-medium text-amber-400">
+              Čaká na overenie
+            </span>
+          ) : null}
+        </div>
+        {isVerified && (
+          <p className="text-xs text-zinc-500">
+            Úprava údajov zruší overenie a bude potrebné opätovné overenie správcom.
+          </p>
+        )}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>{t("licenseNumber")}</Label>
+            <Input
+              name="zpNumber"
+              type="password"
+              autoComplete="off"
+              placeholder="napr. AA-000123"
+              defaultValue=""
+            />
+            <p className="text-xs text-zinc-500">
+              {user.zbrojnyPreukazCategory ? "Vyplňte len ak chcete zmeniť" : ""}
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label>{t("licenseCategory")}</Label>
+            <select
+              name="zpCategory"
+              defaultValue={user.zbrojnyPreukazCategory ?? ""}
+              className="h-8 w-full rounded-lg border border-zinc-700 bg-zinc-800/50 px-2.5 text-sm text-zinc-100 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              <option value="">--</option>
+              {ZP_CATEGORIES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label>{t("licenseIssuedAt")}</Label>
+            <Input name="zpIssuedAt" type="date" defaultValue={user.zbrojnyPreukazIssuedAt ?? ""} />
+          </div>
+          <div className="space-y-2">
+            <Label>{t("licenseExpiresAt")}</Label>
+            <Input name="zpExpiresAt" type="date" defaultValue={user.zbrojnyPreukazExpiresAt ?? ""} />
+          </div>
+          <div className="col-span-2 space-y-2">
+            <Label>{t("licenseAuthority")}</Label>
+            <Input name="zpAuthority" defaultValue={user.zbrojnyPreukazIssuingAuthority ?? ""} />
           </div>
         </div>
 

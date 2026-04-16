@@ -23,6 +23,11 @@ export async function GET() {
       addressZip: users.addressZip,
       addressCountry: users.addressCountry,
       locale: users.locale,
+      zbrojnyPreukazCategory: users.zbrojnyPreukazCategory,
+      zbrojnyPreukazIssuedAt: users.zbrojnyPreukazIssuedAt,
+      zbrojnyPreukazExpiresAt: users.zbrojnyPreukazExpiresAt,
+      zbrojnyPreukazIssuingAuthority: users.zbrojnyPreukazIssuingAuthority,
+      zbrojnyPreukazVerifiedAt: users.zbrojnyPreukazVerifiedAt,
     })
     .from(users)
     .where(eq(users.id, session.user.id))

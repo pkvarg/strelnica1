@@ -17,6 +17,8 @@ export const users = pgTable("users", {
   zbrojnyPreukazIssuedAt: date("zbrojny_preukaz_issued_at"),
   zbrojnyPreukazExpiresAt: date("zbrojny_preukaz_expires_at"),
   zbrojnyPreukazIssuingAuthority: text("zbrojny_preukaz_issuing_authority"),
+  zbrojnyPreukazVerifiedAt: timestamp("zbrojny_preukaz_verified_at", { withTimezone: true }),
+  zbrojnyPreukazVerifiedBy: uuid("zbrojny_preukaz_verified_by"),
   role: text("role", { enum: ["admin", "member"] }).notNull().default("member"),
   status: text("status", {
     enum: ["invited", "pending_verification", "active", "suspended", "anonymized"],

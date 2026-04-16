@@ -1,5 +1,6 @@
 import { db } from "@/db";
 import { auditLog } from "@/db/schema";
+import { getClientIp } from "@/lib/ip";
 import { headers } from "next/headers";
 
 interface AuditEntry {
@@ -13,10 +14,7 @@ interface AuditEntry {
 
 export async function writeAudit(entry: AuditEntry) {
   const hdrs = await headers();
-  const ip =
-    hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    hdrs.get("x-real-ip") ??
-    null;
+  const ip = await getClientIp();
   const userAgent = hdrs.get("user-agent") ?? null;
 
   await db.insert(auditLog).values({

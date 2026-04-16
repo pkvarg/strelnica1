@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { generateToken, hashToken } from "@/lib/tokens";
+import { encrypt } from "@/lib/encryption";
 import { writeAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { notifyInvitation } from "@/lib/notify";
@@ -180,4 +181,165 @@ export async function anonymizeUser(userId: string) {
   });
 
   revalidatePath("/admin/pouzivatelia");
+}
+
+// --- Zbrojny preukaz (firearms license) ---
+
+const VALID_CATEGORIES = ["A", "B", "C", "D", "E", "F"] as const;
+type ZPCategory = (typeof VALID_CATEGORIES)[number];
+
+export interface LicenseResult {
+  error?: string;
+  success?: boolean;
+}
+
+export async function updateUserLicense(
+  _prev: LicenseResult | null,
+  formData: FormData,
+): Promise<LicenseResult> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { error: "Unauthorized" };
+  }
+
+  const userId = formData.get("userId") as string;
+  if (!userId) return { error: "Missing userId" };
+
+  const number = (formData.get("number") as string)?.trim() || null;
+  const categoryRaw = (formData.get("category") as string)?.trim() || null;
+  const issuedAtRaw = (formData.get("issuedAt") as string)?.trim() || null;
+  const expiresAtRaw = (formData.get("expiresAt") as string)?.trim() || null;
+  const authority = (formData.get("authority") as string)?.trim() || null;
+
+  // Validate category
+  const category =
+    categoryRaw && VALID_CATEGORIES.includes(categoryRaw as ZPCategory)
+      ? (categoryRaw as ZPCategory)
+      : null;
+
+  if (categoryRaw && !category) {
+    return { error: "Invalid category" };
+  }
+
+  // Validate dates (basic ISO date check)
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (issuedAtRaw && !dateRegex.test(issuedAtRaw)) {
+    return { error: "Invalid issuedAt date format" };
+  }
+  if (expiresAtRaw && !dateRegex.test(expiresAtRaw)) {
+    return { error: "Invalid expiresAt date format" };
+  }
+
+  // Fetch current record for audit diff
+  const [before] = await db
+    .select({
+      zbrojnyPreukazNumberEncrypted: users.zbrojnyPreukazNumberEncrypted,
+      zbrojnyPreukazCategory: users.zbrojnyPreukazCategory,
+      zbrojnyPreukazIssuedAt: users.zbrojnyPreukazIssuedAt,
+      zbrojnyPreukazExpiresAt: users.zbrojnyPreukazExpiresAt,
+      zbrojnyPreukazIssuingAuthority: users.zbrojnyPreukazIssuingAuthority,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!before) return { error: "User not found" };
+
+  // Encrypt the license number if provided
+  const encryptedNumber = number ? encrypt(number) : null;
+
+  await db
+    .update(users)
+    .set({
+      zbrojnyPreukazNumberEncrypted: encryptedNumber,
+      zbrojnyPreukazCategory: category,
+      zbrojnyPreukazIssuedAt: issuedAtRaw,
+      zbrojnyPreukazExpiresAt: expiresAtRaw,
+      zbrojnyPreukazIssuingAuthority: authority,
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, userId));
+
+  // Audit log -- do NOT log the actual license number
+  const numberChanged =
+    (before.zbrojnyPreukazNumberEncrypted == null) !== (encryptedNumber == null) ||
+    (before.zbrojnyPreukazNumberEncrypted != null && encryptedNumber != null &&
+      before.zbrojnyPreukazNumberEncrypted !== encryptedNumber);
+
+  await writeAudit({
+    actorUserId: session.user.id,
+    action: "license_update",
+    entityType: "user",
+    entityId: userId,
+    before: {
+      numberSet: before.zbrojnyPreukazNumberEncrypted != null,
+      category: before.zbrojnyPreukazCategory,
+      issuedAt: before.zbrojnyPreukazIssuedAt,
+      expiresAt: before.zbrojnyPreukazExpiresAt,
+      authority: before.zbrojnyPreukazIssuingAuthority,
+    },
+    after: {
+      numberChanged,
+      numberSet: encryptedNumber != null,
+      category,
+      issuedAt: issuedAtRaw,
+      expiresAt: expiresAtRaw,
+      authority,
+    },
+  });
+
+  revalidatePath(`/admin/pouzivatelia/${userId}`);
+  revalidatePath("/admin/pouzivatelia");
+
+  return { success: true };
+}
+
+export async function verifyUserLicense(userId: string) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    throw new Error("Unauthorized");
+  }
+
+  await db
+    .update(users)
+    .set({
+      zbrojnyPreukazVerifiedAt: new Date(),
+      zbrojnyPreukazVerifiedBy: session.user.id,
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, userId));
+
+  await writeAudit({
+    actorUserId: session.user.id,
+    action: "license_verify",
+    entityType: "user",
+    entityId: userId,
+  });
+
+  revalidatePath(`/admin/pouzivatelia/${userId}`);
+}
+
+export async function unverifyUserLicense(userId: string) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    throw new Error("Unauthorized");
+  }
+
+  await db
+    .update(users)
+    .set({
+      zbrojnyPreukazVerifiedAt: null,
+      zbrojnyPreukazVerifiedBy: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, userId));
+
+  await writeAudit({
+    actorUserId: session.user.id,
+    action: "license_unverify",
+    entityType: "user",
+    entityId: userId,
+  });
+
+  revalidatePath(`/admin/pouzivatelia/${userId}`);
 }

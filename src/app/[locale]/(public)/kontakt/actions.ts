@@ -4,6 +4,8 @@ import { db } from "@/db";
 import { contactMessages } from "@/db/schema";
 import { notifyContact } from "@/lib/notify";
 import { rateLimit } from "@/lib/rate-limit";
+import { incrementEmails } from "@/lib/visitors";
+import { getClientIp } from "@/lib/ip";
 import { headers } from "next/headers";
 
 export async function submitContact(
@@ -33,7 +35,7 @@ export async function submitContact(
   }
 
   const hdrs = await headers();
-  const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+  const ip = await getClientIp();
   const userAgent = hdrs.get("user-agent") ?? null;
   const referer = hdrs.get("referer") ?? null;
   const acceptLanguage = hdrs.get("accept-language") ?? null;
@@ -47,6 +49,7 @@ export async function submitContact(
   try {
     await notifyContact({ name, email, phone, message, locale });
     emailSent = true;
+    incrementEmails().catch(() => {});
   } catch (e) {
     console.error("Contact email send failed:", e);
   }

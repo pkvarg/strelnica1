@@ -7,10 +7,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     const userAgent = request.headers.get("user-agent") || "Unknown";
-    const ipAddress =
-      request.headers.get("x-forwarded-for")?.split(",")[0] ||
-      request.headers.get("x-real-ip") ||
-      "Unknown";
+    const rawIp =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      request.headers.get("x-real-ip")?.trim() ||
+      null;
+    const ipAddress = !rawIp || rawIp === "::1" || rawIp === "127.0.0.1" ? "localhost" : rawIp;
 
     await db.insert(botLog).values({
       name: body.name || null,

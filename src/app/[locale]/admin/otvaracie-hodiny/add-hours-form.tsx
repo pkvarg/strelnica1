@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { addOpeningHours } from "./actions";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,13 @@ export function AddHoursForm({ ranges }: { ranges: Range[] }) {
   const t = useTranslations("openingHours");
   const days: string[] = t.raw("days");
   const [state, formAction, isPending] = useActionState(addOpeningHours, null);
+  const [selectedDays, setSelectedDays] = useState<number[]>([]);
+
+  function toggleDay(day: number) {
+    setSelectedDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+    );
+  }
 
   return (
     <form action={formAction} className="rounded-lg border p-4">
@@ -29,13 +36,27 @@ export function AddHoursForm({ ranges }: { ranges: Range[] }) {
           </select>
         </div>
 
-        <div className="space-y-1">
+        <div className="col-span-2 space-y-1.5 md:col-span-3">
           <Label>{t("weekday")}</Label>
-          <select name="weekday" className="w-full rounded-md border px-3 py-2 text-sm" required>
+          <div className="flex flex-wrap gap-1.5">
             {days.map((day, i) => (
-              <option key={i} value={i}>{day}</option>
+              <button
+                key={i}
+                type="button"
+                onClick={() => toggleDay(i)}
+                className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                  selectedDays.includes(i)
+                    ? "border-amber-600 bg-amber-600/20 text-amber-400"
+                    : "border-zinc-700 text-zinc-400 hover:border-zinc-500"
+                }`}
+              >
+                {day}
+              </button>
             ))}
-          </select>
+          </div>
+          {selectedDays.map((d) => (
+            <input key={d} type="hidden" name="weekdays" value={d} />
+          ))}
         </div>
 
         <div className="space-y-1">
@@ -62,8 +83,9 @@ export function AddHoursForm({ ranges }: { ranges: Range[] }) {
       {state?.error && <p className="mt-2 text-sm text-red-600">{state.error}</p>}
       {state?.success && <p className="mt-2 text-sm text-green-700">{t("saved")}</p>}
 
-      <Button type="submit" className="mt-4" disabled={isPending}>
+      <Button type="submit" className="mt-4" disabled={isPending || selectedDays.length === 0}>
         {isPending ? "..." : t("add")}
+        {selectedDays.length > 1 && ` (${selectedDays.length} dní)`}
       </Button>
     </form>
   );

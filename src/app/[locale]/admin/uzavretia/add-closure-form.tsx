@@ -31,13 +31,25 @@ export function AddClosureForm({ ranges }: { ranges: Range[] }) {
 
         <div className="space-y-1">
           <Label>{t("startsAt")}</Label>
-          <Input name="startsAt" type="datetime-local" required />
+          <Input name="startDate" type="date" required />
         </div>
 
         <div className="space-y-1">
           <Label>{t("endsAt")}</Label>
-          <Input name="endsAt" type="datetime-local" required />
+          <Input name="endDate" type="date" required />
         </div>
+
+        <div className="space-y-1">
+          <Label>Od (voliteľné)</Label>
+          <Input name="startTime" type="time" placeholder="00:00" />
+        </div>
+
+        <div className="space-y-1">
+          <Label>Do (voliteľné)</Label>
+          <Input name="endTime" type="time" placeholder="23:59" />
+        </div>
+
+        <div />
 
         <div className="space-y-1">
           <Label>{t("reasonSk")}</Label>

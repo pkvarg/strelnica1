@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { deleteOpeningHours } from "./actions";
+import { fmtDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -47,8 +48,8 @@ export function HoursTable({ hours }: { hours: HoursRow[] }) {
             <TableCell>{days[h.weekday]}</TableCell>
             <TableCell>{h.startTime}</TableCell>
             <TableCell>{h.endTime}</TableCell>
-            <TableCell>{h.validFrom}</TableCell>
-            <TableCell>{h.validTo ?? "-"}</TableCell>
+            <TableCell>{fmtDate(h.validFrom)}</TableCell>
+            <TableCell>{h.validTo ? fmtDate(h.validTo) : "—"}</TableCell>
             <TableCell>
               <Button
                 variant="destructive"

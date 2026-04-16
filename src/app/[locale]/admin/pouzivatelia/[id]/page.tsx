@@ -3,7 +3,11 @@ import { users, memberships, bookings } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { decrypt } from "@/lib/encryption";
+import { fmtDate, fmtDateTime } from "@/lib/format";
 import { UserActions } from "./user-actions";
+import { LicenseForm } from "./license-form";
+import { LicenseVerifyButton } from "./license-verify-button";
 
 export default async function UserDetailPage({
   params,
@@ -20,6 +24,20 @@ export default async function UserDetailPage({
     .limit(1);
 
   if (!user) notFound();
+
+  // Decrypt zbrojny preukaz number (server-only)
+  const zpNumber = user.zbrojnyPreukazNumberEncrypted
+    ? decrypt(user.zbrojnyPreukazNumberEncrypted)
+    : null;
+
+  // Check if license expires within 60 days
+  const zpExpiresAt = user.zbrojnyPreukazExpiresAt;
+  const zpExpiringSoon =
+    zpExpiresAt != null &&
+    new Date(zpExpiresAt).getTime() - Date.now() < 60 * 24 * 60 * 60 * 1000 &&
+    new Date(zpExpiresAt).getTime() > Date.now();
+  const zpExpired =
+    zpExpiresAt != null && new Date(zpExpiresAt).getTime() <= Date.now();
 
   const userMemberships = await db
     .select()
@@ -60,13 +78,79 @@ export default async function UserDetailPage({
             <dt className="font-medium">Jazyk</dt>
             <dd>{user.locale}</dd>
             <dt className="font-medium">Vytvorený</dt>
-            <dd>{user.createdAt.toLocaleString()}</dd>
+            <dd>{fmtDateTime(user.createdAt)}</dd>
             <dt className="font-medium">Posledné prihlásenie</dt>
-            <dd>{user.lastLoginAt?.toLocaleString() ?? "-"}</dd>
+            <dd>{user.lastLoginAt ? fmtDateTime(user.lastLoginAt) : "—"}</dd>
           </dl>
         </div>
 
         <UserActions userId={user.id} status={user.status} />
+
+        {/* Zbrojny preukaz — read-only overview */}
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-zinc-100">
+                Zbrojný preukaz
+              </h2>
+              {user.zbrojnyPreukazVerifiedAt ? (
+                <span className="rounded-full bg-emerald-900/40 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
+                  Overený {fmtDate(user.zbrojnyPreukazVerifiedAt)}
+                </span>
+              ) : user.zbrojnyPreukazCategory ? (
+                <span className="rounded-full bg-amber-900/40 px-2.5 py-0.5 text-xs font-medium text-amber-400">
+                  Neoverený
+                </span>
+              ) : null}
+            </div>
+            {user.zbrojnyPreukazCategory && (
+              <LicenseVerifyButton
+                userId={user.id}
+                isVerified={!!user.zbrojnyPreukazVerifiedAt}
+              />
+            )}
+          </div>
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+            <dt className="font-medium text-zinc-400">Kategoria</dt>
+            <dd className="text-zinc-200">
+              {user.zbrojnyPreukazCategory ?? "\u2014"}
+            </dd>
+            <dt className="font-medium text-zinc-400">Cislo preukazu</dt>
+            <dd className="text-zinc-200">{zpNumber ?? "\u2014"}</dd>
+            <dt className="font-medium text-zinc-400">Vydany dna</dt>
+            <dd className="text-zinc-200">
+              {user.zbrojnyPreukazIssuedAt ?? "\u2014"}
+            </dd>
+            <dt className="font-medium text-zinc-400">Platnost do</dt>
+            <dd
+              className={
+                zpExpired
+                  ? "font-semibold text-red-400"
+                  : zpExpiringSoon
+                    ? "font-semibold text-amber-400"
+                    : "text-zinc-200"
+              }
+            >
+              {user.zbrojnyPreukazExpiresAt ?? "\u2014"}
+              {zpExpired && " (expirovany)"}
+              {zpExpiringSoon && " (coskoro expiruje)"}
+            </dd>
+            <dt className="font-medium text-zinc-400">Vydavajuci organ</dt>
+            <dd className="text-zinc-200">
+              {user.zbrojnyPreukazIssuingAuthority ?? "\u2014"}
+            </dd>
+          </dl>
+        </div>
+
+        {/* Zbrojny preukaz — edit form */}
+        <LicenseForm
+          userId={user.id}
+          number={zpNumber}
+          category={user.zbrojnyPreukazCategory}
+          issuedAt={user.zbrojnyPreukazIssuedAt}
+          expiresAt={user.zbrojnyPreukazExpiresAt}
+          authority={user.zbrojnyPreukazIssuingAuthority}
+        />
 
         <div>
           <h2 className="text-lg font-semibold">Členstvo</h2>
@@ -77,7 +161,7 @@ export default async function UserDetailPage({
               {userMemberships.map((m) => (
                 <li key={m.year}>
                   {m.year} — {m.feeAmount} {m.currency}{" "}
-                  {m.paidAt ? `(zaplatené ${m.paidAt.toLocaleDateString()})` : "(nezaplatené)"}
+                  {m.paidAt ? `(zaplatené ${fmtDate(m.paidAt)})` : "(nezaplatené)"}
                 </li>
               ))}
             </ul>
@@ -92,7 +176,7 @@ export default async function UserDetailPage({
             <ul className="mt-2 space-y-1 text-sm">
               {userBookings.map((b) => (
                 <li key={b.id}>
-                  {b.rangeId} — {b.startsAt.toLocaleString()} → {b.endsAt.toLocaleString()} [{b.status}]
+                  {b.rangeId} — {fmtDateTime(b.startsAt)} → {fmtDateTime(b.endsAt)} [{b.status}]
                 </li>
               ))}
             </ul>

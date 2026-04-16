@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -103,9 +103,8 @@ export function ContactLogManager() {
               const suspiciousTime = log.timeSpent !== null && log.timeSpent < 5000;
 
               return (
-                <>
+                <React.Fragment key={log.id}>
                   <TableRow
-                    key={log.id}
                     className="cursor-pointer hover:bg-zinc-800/30"
                     onClick={() => setExpandedId(isExpanded ? null : log.id)}
                   >
@@ -168,7 +167,7 @@ export function ContactLogManager() {
                       </TableCell>
                     </TableRow>
                   )}
-                </>
+                </React.Fragment>
               );
             })}
             {filtered.length === 0 && (

@@ -1,5 +1,6 @@
 "use client";
 
+import { fmtDate, fmtTime } from "@/lib/format";
 import {
   Table,
   TableBody,
@@ -73,11 +74,11 @@ export function AdminBookingsTable({
               <span className="text-xs text-zinc-500">{b.userEmail}</span>
             </TableCell>
             <TableCell>{rangeMap[b.rangeId] ?? b.rangeId}</TableCell>
-            <TableCell>{b.startsAt.toLocaleDateString()}</TableCell>
+            <TableCell>{fmtDate(b.startsAt)}</TableCell>
             <TableCell>
-              {b.startsAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              {fmtTime(b.startsAt)}
               {" - "}
-              {b.endsAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              {fmtTime(b.endsAt)}
             </TableCell>
             <TableCell>{b.guestCount}</TableCell>
             <TableCell>

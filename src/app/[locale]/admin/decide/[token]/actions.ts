@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { hashToken } from "@/lib/tokens";
 import { invalidateSiblingTokens } from "@/lib/approval-tokens";
 import { writeAudit } from "@/lib/audit";
-import { headers } from "next/headers";
+import { getClientIp } from "@/lib/ip";
 
 interface DecideResult {
   error?: string;
@@ -56,8 +56,7 @@ export async function executeDecision(
   }
 
   const newStatus = approvalToken.action === "approve" ? "approved" : "declined";
-  const hdrs = await headers();
-  const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ?? hdrs.get("x-real-ip") ?? null;
+  const ip = await getClientIp();
 
   await db
     .update(bookings)

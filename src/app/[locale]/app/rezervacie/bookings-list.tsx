@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { cancelBooking } from "./actions";
+import { fmtDate, fmtTime } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -79,12 +80,9 @@ export function BookingsList({
           return (
             <TableRow key={b.id}>
               <TableCell>{rangeMap[b.rangeId] ?? b.rangeId}</TableCell>
-              <TableCell>{b.startsAt.toLocaleDateString()}</TableCell>
+              <TableCell>{fmtDate(b.startsAt)}</TableCell>
               <TableCell>
-                {b.startsAt.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {fmtTime(b.startsAt)}
               </TableCell>
               <TableCell>{durationH}h</TableCell>
               <TableCell>{b.guestCount}</TableCell>

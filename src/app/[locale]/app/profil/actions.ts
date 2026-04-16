@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { writeAudit } from "@/lib/audit";
+import { encrypt } from "@/lib/encryption";
 import { revalidatePath } from "next/cache";
 
 export async function updateProfile(
@@ -34,7 +35,34 @@ export async function updateProfile(
     updatedAt: new Date(),
   };
 
-  await db.update(users).set(patch).where(eq(users.id, session.user.id));
+  // License fields — member can edit, but editing resets verification
+  const zpNumber = (formData.get("zpNumber") as string)?.trim() || null;
+  const zpCategory = (formData.get("zpCategory") as string)?.trim() || null;
+  const zpIssuedAt = (formData.get("zpIssuedAt") as string)?.trim() || null;
+  const zpExpiresAt = (formData.get("zpExpiresAt") as string)?.trim() || null;
+  const zpAuthority = (formData.get("zpAuthority") as string)?.trim() || null;
+
+  const licenseChanged =
+    zpNumber !== null || zpCategory !== null || zpIssuedAt !== null ||
+    zpExpiresAt !== null || zpAuthority !== null;
+
+  const licensePatch = licenseChanged
+    ? {
+        zbrojnyPreukazNumberEncrypted: zpNumber ? encrypt(zpNumber) : before.zbrojnyPreukazNumberEncrypted,
+        zbrojnyPreukazCategory: zpCategory || before.zbrojnyPreukazCategory,
+        zbrojnyPreukazIssuedAt: zpIssuedAt || before.zbrojnyPreukazIssuedAt,
+        zbrojnyPreukazExpiresAt: zpExpiresAt || before.zbrojnyPreukazExpiresAt,
+        zbrojnyPreukazIssuingAuthority: zpAuthority || before.zbrojnyPreukazIssuingAuthority,
+        // Reset verification when member edits license data
+        zbrojnyPreukazVerifiedAt: null as Date | null,
+        zbrojnyPreukazVerifiedBy: null as string | null,
+      }
+    : {};
+
+  await db
+    .update(users)
+    .set({ ...patch, ...licensePatch })
+    .where(eq(users.id, session.user.id));
 
   await writeAudit({
     actorUserId: session.user.id,
@@ -48,6 +76,7 @@ export async function updateProfile(
     after: {
       firstName: patch.firstName,
       lastName: patch.lastName,
+      licenseEdited: licenseChanged,
     },
   });
 
