@@ -3,6 +3,7 @@ import { bookings, users } from "@/db/schema";
 import { eq, asc, and, gte, lte } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import { PendingQueue } from "./pending-queue";
+import { TodaySchedule } from "./today-schedule";
 
 export default async function AdminDashboard() {
   const t = await getTranslations();
@@ -63,24 +64,9 @@ export default async function AdminDashboard() {
 
       <div className="mt-8">
         <h2 className="text-lg font-semibold">{t("admin.todaySchedule")} ({todayBookings.length})</h2>
-        {todayBookings.length === 0 ? (
-          <p className="mt-2 text-sm text-zinc-500">-</p>
-        ) : (
-          <div className="mt-2 space-y-2">
-            {todayBookings.map((b) => (
-              <div key={b.id} className="flex items-center gap-4 rounded-lg border p-3 text-sm">
-                <span className="font-medium">{b.rangeId}</span>
-                <span>
-                  {b.startsAt.toLocaleTimeString("sk-SK", { hour: "2-digit", minute: "2-digit" })}
-                  {" - "}
-                  {b.endsAt.toLocaleTimeString("sk-SK", { hour: "2-digit", minute: "2-digit" })}
-                </span>
-                <span>{b.userName} {b.userLastName}</span>
-                <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs">{b.status}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="mt-2">
+          <TodaySchedule bookings={todayBookings} />
+        </div>
       </div>
     </div>
   );

@@ -9,7 +9,8 @@ interface DayRange {
   startTime: string | null;
   endTime: string | null;
   closed: boolean;
-  closureReason: string | null;
+  closureReasonSk: string | null;
+  closureReasonHu: string | null;
   bookedSlots: { start: string; end: string }[];
 }
 
@@ -98,8 +99,8 @@ export function AvailabilityCalendar() {
                   <td key={dr.rangeId} className="px-2 py-2">
                     {!dr.open ? (
                       <span className="rounded bg-zinc-300 px-2 py-0.5 text-xs font-medium text-zinc-700">
-                        {dr.closed && dr.closureReason
-                          ? dr.closureReason
+                        {dr.closed && (locale === "hu" ? dr.closureReasonHu : dr.closureReasonSk)
+                          ? (locale === "hu" ? dr.closureReasonHu : dr.closureReasonSk)
                           : t("closed")}
                       </span>
                     ) : (

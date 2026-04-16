@@ -66,7 +66,8 @@ export async function GET() {
       startTime: string | null;
       endTime: string | null;
       closed: boolean;
-      closureReason: string | null;
+      closureReasonSk: string | null;
+      closureReasonHu: string | null;
       bookedSlots: { start: string; end: string }[];
     }[];
   }[] = [];
@@ -110,7 +111,8 @@ export async function GET() {
         startTime: rangeHours?.startTime ?? null,
         endTime: rangeHours?.endTime ?? null,
         closed: !!rangeClosure,
-        closureReason: rangeClosure?.reasonSk ?? null,
+        closureReasonSk: rangeClosure?.reasonSk ?? null,
+        closureReasonHu: rangeClosure?.reasonHu ?? null,
         bookedSlots: dayBookings,
       };
     });

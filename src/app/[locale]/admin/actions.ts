@@ -72,3 +72,35 @@ export async function approveBookingInline(bookingId: string) {
 export async function declineBookingInline(bookingId: string, reason?: string) {
   await decideBookingInline(bookingId, "declined", reason);
 }
+
+export async function checkInBookingAdmin(bookingId: string) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    throw new Error("Unauthorized");
+  }
+
+  const [booking] = await db
+    .select({ id: bookings.id, status: bookings.status, userId: bookings.userId })
+    .from(bookings)
+    .where(eq(bookings.id, bookingId))
+    .limit(1);
+
+  if (!booking) throw new Error("Booking not found");
+  if (booking.status !== "approved") throw new Error("Booking not in approved state");
+
+  await db
+    .update(bookings)
+    .set({ status: "checked_in", checkInAt: new Date() })
+    .where(eq(bookings.id, bookingId));
+
+  await writeAudit({
+    actorUserId: session.user.id,
+    action: "admin_check_in",
+    entityType: "booking",
+    entityId: bookingId,
+    before: { status: "approved" },
+    after: { status: "checked_in" },
+  });
+
+  revalidatePath("/admin");
+}
