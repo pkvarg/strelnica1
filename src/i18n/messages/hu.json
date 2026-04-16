@@ -27,7 +27,17 @@
   },
   "landing": {
     "title": "Lőtér",
-    "subtitle": "Foglalási rendszer"
+    "subtitle": "Foglalási rendszer",
+    "heroHeadline": "A pontosság a foglalásnál kezdődik",
+    "heroSub": "Biztosítsa be az idejét a lőtéren. Online foglalás tagok számára.",
+    "heroCta": "Bejelentkezés",
+    "range50title": "50 méter",
+    "range50desc": "Fedett lőtér kiskaliberű és rövid fegyverekhez. Elektronikus célrendszer, légkondicionálás, egyéni boxok.",
+    "rangeBRtitle": "Sörétes lőtér",
+    "rangeBRdesc": "Szabadtéri sörétes lőtér trap és skeet lövészethez. Automata korongvető, tágas állások.",
+    "rangesHeading": "Lőtereink",
+    "footerRights": "Minden jog fenntartva",
+    "footerAddress": "A lőtér elérhetősége"
   },
   "auth": {
     "loginTitle": "Bejelentkezés",

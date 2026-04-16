@@ -27,7 +27,17 @@
   },
   "landing": {
     "title": "Strelnica",
-    "subtitle": "Rezervačný systém"
+    "subtitle": "Rezervačný systém",
+    "heroHeadline": "Presnosť začína rezerváciou",
+    "heroSub": "Zabezpečte si čas na streľbe. Online rezervácia pre členov strelnice.",
+    "heroCta": "Prihlásiť sa",
+    "range50title": "50 metrov",
+    "range50desc": "Krytá strelnica pre malorážky a krátke zbrane. Elektronický terčový systém, klimatizácia, individuálne boxy.",
+    "rangeBRtitle": "Broková strelnica",
+    "rangeBRdesc": "Vonkajšia broková strelnica pre trap a skeet. Automatický vrhač, priestranné stanovištia.",
+    "rangesHeading": "Naše strelnice",
+    "footerRights": "Všetky práva vyhradené",
+    "footerAddress": "Kontaktná adresa strelnice"
   },
   "auth": {
     "loginTitle": "Prihlásenie",

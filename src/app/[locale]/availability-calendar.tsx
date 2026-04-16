@@ -48,6 +48,10 @@ function formatDate(dateStr: string, locale: string): string {
   return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)} ${day}. ${month} ${year}`;
 }
 
+function isToday(dateStr: string): boolean {
+  return dateStr === new Date().toISOString().split("T")[0];
+}
+
 export function AvailabilityCalendar() {
   const t = useTranslations("calendar");
   const locale = useLocale();
@@ -59,78 +63,111 @@ export function AvailabilityCalendar() {
       .then(setData);
   }, []);
 
-  if (!data) return <p className="text-center text-zinc-500">...</p>;
+  if (!data) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-700 border-t-amber-500" />
+      </div>
+    );
+  }
 
   return (
     <div>
-      <h2 className="mb-4 text-xl font-semibold">{t("title")}</h2>
+      <div className="mb-8 flex items-center gap-4">
+        <div className="h-px flex-1 bg-zinc-800" />
+        <h2 className="font-[family-name:var(--font-bebas)] text-3xl tracking-widest text-zinc-400">
+          {t("title")}
+        </h2>
+        <div className="h-px flex-1 bg-zinc-800" />
+      </div>
 
-      <div className="flex gap-4 text-xs mb-4">
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded bg-green-700" /> {t("available")}
+      <div className="mb-6 flex gap-5 text-xs">
+        <span className="flex items-center gap-2">
+          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-emerald-600" />
+          <span className="text-zinc-400">{t("available")}</span>
         </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded bg-red-700" /> {t("booked")}
+        <span className="flex items-center gap-2">
+          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-red-600" />
+          <span className="text-zinc-400">{t("booked")}</span>
         </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded bg-zinc-400" /> {t("closed")}
+        <span className="flex items-center gap-2">
+          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-zinc-700" />
+          <span className="text-zinc-400">{t("closed")}</span>
         </span>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/40">
         <table className="w-full text-sm">
           <thead>
-            <tr>
-              <th className="px-2 py-1 text-left font-medium">{locale === "hu" ? "Dátum" : "Dátum"}</th>
+            <tr className="border-b border-zinc-800 bg-zinc-900/60">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                {locale === "hu" ? "Dátum" : "Dátum"}
+              </th>
               {data.ranges.map((r) => (
-                <th key={r.id} className="px-2 py-1 text-left font-medium">
+                <th
+                  key={r.id}
+                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500"
+                >
                   {locale === "hu" ? r.nameHu : r.nameSk}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {data.days.map((day) => (
-              <tr key={day.date} className="border-t">
-                <td className="px-2 py-2 font-medium whitespace-nowrap">
-                  {formatDate(day.date, locale)}
-                </td>
-                {day.ranges.map((dr) => (
-                  <td key={dr.rangeId} className="px-2 py-2">
-                    {!dr.open ? (
-                      <span className="rounded bg-zinc-300 px-2 py-0.5 text-xs font-medium text-zinc-700">
-                        {dr.closed && (locale === "hu" ? dr.closureReasonHu : dr.closureReasonSk)
-                          ? (locale === "hu" ? dr.closureReasonHu : dr.closureReasonSk)
-                          : t("closed")}
-                      </span>
-                    ) : (
-                      <div>
-                        <span className="text-xs text-zinc-600">
-                          {dr.startTime} - {dr.endTime}
-                        </span>
-                        {dr.bookedSlots.length > 0 && (
-                          <div className="mt-0.5 flex flex-wrap gap-1">
-                            {dr.bookedSlots.map((s, i) => (
-                              <span
-                                key={i}
-                                className="rounded bg-red-700 px-1.5 py-0.5 text-xs font-medium text-white"
-                              >
-                                {s.start}-{s.end}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                        {dr.bookedSlots.length === 0 && (
-                          <span className="ml-1 rounded bg-green-700 px-1.5 py-0.5 text-xs font-medium text-white">
-                            {t("available")}
-                          </span>
-                        )}
-                      </div>
-                    )}
+            {data.days.map((day) => {
+              const today = isToday(day.date);
+              return (
+                <tr
+                  key={day.date}
+                  className={`border-b border-zinc-800/50 transition-colors hover:bg-zinc-800/30 ${today ? "bg-amber-950/10" : ""}`}
+                >
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <span className={`text-sm font-medium ${today ? "text-amber-500" : "text-zinc-300"}`}>
+                      {formatDate(day.date, locale)}
+                    </span>
                   </td>
-                ))}
-              </tr>
-            ))}
+                  {day.ranges.map((dr) => (
+                    <td key={dr.rangeId} className="px-4 py-3">
+                      {!dr.open ? (
+                        <span className="inline-flex items-center rounded bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-500">
+                          {dr.closed &&
+                          (locale === "hu"
+                            ? dr.closureReasonHu
+                            : dr.closureReasonSk)
+                            ? locale === "hu"
+                              ? dr.closureReasonHu
+                              : dr.closureReasonSk
+                            : t("closed")}
+                        </span>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-zinc-500">
+                            {dr.startTime} - {dr.endTime}
+                          </span>
+                          {dr.bookedSlots.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {dr.bookedSlots.map((s, i) => (
+                                <span
+                                  key={i}
+                                  className="rounded bg-red-600/20 px-2 py-0.5 text-xs font-medium text-red-400 ring-1 ring-red-600/30"
+                                >
+                                  {s.start}-{s.end}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {dr.bookedSlots.length === 0 && (
+                            <span className="rounded bg-emerald-600/15 px-2 py-0.5 text-xs font-medium text-emerald-400 ring-1 ring-emerald-600/30">
+                              {t("available")}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
