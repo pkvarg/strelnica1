@@ -9,6 +9,7 @@ import { writeAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { getPgBoss } from "@/lib/pgboss";
 import { scheduleBookingExpiry } from "@/lib/jobs/booking-expiry";
+import { issueApprovalTokens } from "@/lib/approval-tokens";
 
 interface BookingResult {
   error?: string;
@@ -78,7 +79,8 @@ export async function requestBooking(
     } catch {
       // pg-boss may not be started yet in dev; booking still created
     }
-    // TODO M4: enqueue notify.admins.bookingRequest
+    await issueApprovalTokens(booking.id);
+    // TODO M4: enqueue notify.admins.bookingRequest (email with approve/decline links)
 
     revalidatePath("/app/rezervacie");
     return { success: true };
