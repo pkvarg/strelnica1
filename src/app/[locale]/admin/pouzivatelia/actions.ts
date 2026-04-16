@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import { generateToken, hashToken } from "@/lib/tokens";
 import { writeAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
+import { notifyInvitation } from "@/lib/notify";
 
 const INVITATION_TTL_MS = 72 * 60 * 60 * 1000;
 
@@ -76,7 +77,13 @@ export async function inviteMember(
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const invitationUrl = `${appUrl}/${locale}/pozvanka/${token}`;
 
-  // TODO M4: send invitation email via hono_bun
+  notifyInvitation({
+    email,
+    firstName,
+    invitationUrl,
+    locale,
+    userId: newUser.id,
+  }).catch(console.error);
 
   revalidatePath("/admin/pouzivatelia");
 

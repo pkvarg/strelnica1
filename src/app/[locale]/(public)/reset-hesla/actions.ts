@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { generateToken, hashToken } from "@/lib/tokens";
 import crypto from "crypto";
 import { writeAudit } from "@/lib/audit";
+import { notifyPasswordReset } from "@/lib/notify";
 
 export async function requestPasswordReset(
   _prev: { error?: string; success?: boolean } | null,
@@ -34,7 +35,16 @@ export async function requestPasswordReset(
     expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1h
   });
 
-  // TODO M4: send password reset email via hono_bun with token
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const resetUrl = `${appUrl}/sk/reset-hesla/${token}`;
+
+  notifyPasswordReset({
+    email,
+    firstName: "používateľ",
+    resetUrl,
+    locale: "sk",
+    userId: user.id,
+  }).catch(console.error);
 
   return { success: true };
 }
