@@ -79,6 +79,8 @@ export default function ContactPage() {
   const l = translations[locale];
   const [state, formAction, isPending] = useActionState(submitContact, null);
   const [honeypot, setHoneypot] = useState("");
+  const [extraOne, setExtraOne] = useState(process.env.NEXT_PUBLIC_EMAIL_EXTRA_ONE);
+  const [extraTwo, setExtraTwo] = useState(process.env.NEXT_PUBLIC_EMAIL_EXTRA_TWO);
   const [formStartTime, setFormStartTime] = useState(0);
   const [botBlocked, setBotBlocked] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -96,6 +98,15 @@ export default function ContactPage() {
 
     if (honeypot !== "") {
       logBotAttempt({ name, email, detectionType: "honeypot", detectionDetails: `value: "${honeypot}"`, timeSpent, locale });
+      setBotBlocked(true);
+      return;
+    }
+
+    if (
+      extraOne !== process.env.NEXT_PUBLIC_EMAIL_EXTRA_ONE ||
+      extraTwo !== process.env.NEXT_PUBLIC_EMAIL_EXTRA_TWO
+    ) {
+      logBotAttempt({ name, email, detectionType: "honeypot", detectionDetails: "hidden field value changed", timeSpent, locale });
       setBotBlocked(true);
       return;
     }
@@ -119,6 +130,8 @@ export default function ContactPage() {
       return;
     }
 
+    formData.set("extraOne", extraOne ?? "");
+    formData.set("extraTwo", extraTwo ?? "");
     formData.set("timeSpent", String(timeSpent));
     formData.set("screenSize", `${window.screen.width}x${window.screen.height}`);
     formData.set("platform", (navigator as unknown as Record<string, { platform?: string }>).userAgentData?.platform ?? navigator.platform ?? "unknown");
@@ -193,6 +206,20 @@ export default function ContactPage() {
             value={honeypot}
             onChange={(e) => setHoneypot(e.target.value)}
           />
+          <input
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            defaultValue={extraOne}
+            onChange={(e) => setExtraOne(e.target.value)}
+          />
+          <input
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            defaultValue={extraTwo}
+            onChange={(e) => setExtraTwo(e.target.value)}
+          />
         </div>
 
         <div className="space-y-1.5">
@@ -207,12 +234,14 @@ export default function ContactPage() {
           />
         </div>
 
-        <label className="flex items-start gap-2 text-sm text-zinc-400">
-          <input type="checkbox" required className="mt-0.5" />
-          {l.gdprAgree}{" "}
-          <a href={`/${locale}/gdpr`} target="_blank" className="text-amber-500 underline underline-offset-2 hover:text-amber-400">
-            GDPR
-          </a>
+        <label className="flex items-center gap-2 text-sm text-zinc-400">
+          <input type="checkbox" required className="shrink-0 accent-amber-600" />
+          <span>
+            {l.gdprAgree}{" "}
+            <a href={`/${locale}/gdpr`} target="_blank" className="text-amber-500 underline underline-offset-2 hover:text-amber-400">
+              GDPR
+            </a>
+          </span>
         </label>
 
         {state?.error && (
