@@ -28,7 +28,7 @@ export function AppNav({ user, labels, locale }: AppNavProps) {
   ];
 
   return (
-    <nav className="flex w-56 flex-col border-r bg-zinc-50 p-4 dark:bg-zinc-900">
+    <nav className="flex h-screen sticky top-0 w-56 flex-col border-r bg-zinc-50 p-4 dark:bg-zinc-900">
       <div className="mb-6">
         <p className="font-semibold">{user.name}</p>
         <p className="text-xs text-zinc-500">{user.role}</p>

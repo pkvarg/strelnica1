@@ -8,6 +8,20 @@
       "when": 1776331848943,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1776345406366,
+      "tag": "0001_add-bot-log",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776345671342,
+      "tag": "0002_add-device-info",
+      "breakpoints": true
     }
   ]
 }

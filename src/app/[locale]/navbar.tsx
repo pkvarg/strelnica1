@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 
 function CrosshairIcon() {
   return (
@@ -39,6 +40,7 @@ function LanguageSwitcher() {
 export function Navbar() {
   const t = useTranslations("common");
   const locale = useLocale();
+  const { data: session } = useSession();
 
   const navLinks = [
     { href: `/${locale}`, label: t("home") },
@@ -71,12 +73,21 @@ export function Navbar() {
 
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
-          <Link
-            href={`/${locale}/prihlasenie`}
-            className="rounded-md bg-amber-600 px-4 py-1.5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-amber-500"
-          >
-            {t("login")}
-          </Link>
+          {session?.user ? (
+            <button
+              onClick={() => signOut({ callbackUrl: `/${locale}/prihlasenie` })}
+              className="rounded-md bg-amber-600 px-4 py-1.5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-amber-500"
+            >
+              {t("logout")}
+            </button>
+          ) : (
+            <Link
+              href={`/${locale}/prihlasenie`}
+              className="rounded-md bg-amber-600 px-4 py-1.5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-amber-500"
+            >
+              {t("login")}
+            </Link>
+          )}
         </div>
       </div>
     </nav>

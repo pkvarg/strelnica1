@@ -3,6 +3,9 @@ import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { Navbar } from "./navbar";
+import { SessionProvider } from "next-auth/react";
+import { CookieBanner } from "./cookie-banner";
+import { ConditionalUmami } from "./conditional-umami";
 
 export default async function LocaleLayout({
   children,
@@ -20,8 +23,12 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <Navbar />
-      {children}
+      <SessionProvider>
+        <Navbar />
+        {children}
+        <CookieBanner />
+        <ConditionalUmami />
+      </SessionProvider>
     </NextIntlClientProvider>
   );
 }

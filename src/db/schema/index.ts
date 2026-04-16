@@ -10,3 +10,4 @@ export * from "./contactMessages";
 export * from "./notificationsLog";
 export * from "./auditLog";
 export * from "./consentDocuments";
+export * from "./botLog";

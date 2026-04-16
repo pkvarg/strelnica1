@@ -8,8 +8,8 @@ export default async function RangeRulesPage() {
 
   if (!doc) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12">
-        <h1 className="text-2xl font-bold">
+      <div className="mx-auto max-w-3xl px-4 py-16">
+        <h1 className="font-[family-name:var(--font-bebas)] text-4xl tracking-wide text-zinc-50">
           {locale === "hu" ? "Lőtér szabályzat" : "Pravidlá strelnice"}
         </h1>
         <p className="mt-4 text-zinc-500">
@@ -22,15 +22,17 @@ export default async function RangeRulesPage() {
   const html = await marked(doc.contentMd);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="text-2xl font-bold">
-        {locale === "hu" ? "Lőtér szabályzat" : "Pravidlá strelnice"}
-      </h1>
-      <p className="mt-1 text-xs text-zinc-400">
-        {locale === "hu" ? "Verzió" : "Verzia"}: {doc.version} — {doc.publishedAt.toLocaleDateString(locale === "hu" ? "hu-HU" : "sk-SK")}
-      </p>
+    <div className="mx-auto max-w-3xl px-4 py-16">
+      <div className="mb-8 border-b border-zinc-800 pb-6">
+        <h1 className="font-[family-name:var(--font-bebas)] text-4xl tracking-wide text-zinc-50">
+          {locale === "hu" ? "Lőtér szabályzat" : "Pravidlá strelnice"}
+        </h1>
+        <p className="mt-2 text-sm text-zinc-500">
+          {locale === "hu" ? "Verzió" : "Verzia"}: {doc.version} — {doc.publishedAt.toLocaleDateString(locale === "hu" ? "hu-HU" : "sk-SK")}
+        </p>
+      </div>
       <div
-        className="prose mt-6 max-w-none"
+        className="legal-content"
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </div>

@@ -4,6 +4,7 @@ import { eq, asc, and, gte, lte } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import { PendingQueue } from "./pending-queue";
 import { TodaySchedule } from "./today-schedule";
+import { VisitorStats } from "./visitor-stats";
 
 export default async function AdminDashboard() {
   const t = await getTranslations();
@@ -54,6 +55,10 @@ export default async function AdminDashboard() {
   return (
     <div>
       <h1 className="text-2xl font-bold">{t("admin.title")}</h1>
+
+      <div className="mt-4">
+        <VisitorStats />
+      </div>
 
       <div className="mt-6">
         <h2 className="text-lg font-semibold">{t("admin.pendingBookings")} ({pending.length})</h2>
