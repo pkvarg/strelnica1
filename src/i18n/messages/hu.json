@@ -1,0 +1,23 @@
+{
+  "common": {
+    "appName": "Lőtér",
+    "home": "Főoldal",
+    "login": "Bejelentkezés",
+    "logout": "Kijelentkezés",
+    "contact": "Kapcsolat",
+    "gdpr": "Adatvédelem",
+    "rules": "Lőtér szabályzat",
+    "impressum": "Impresszum",
+    "loading": "Betöltés...",
+    "save": "Mentés",
+    "cancel": "Mégsem",
+    "confirm": "Megerősítés",
+    "back": "Vissza",
+    "error": "Hiba",
+    "success": "Siker"
+  },
+  "landing": {
+    "title": "Lőtér",
+    "subtitle": "Foglalási rendszer"
+  }
+}

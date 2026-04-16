@@ -1,0 +1,23 @@
+{
+  "common": {
+    "appName": "Strelnica",
+    "home": "Domov",
+    "login": "Prihlásenie",
+    "logout": "Odhlásenie",
+    "contact": "Kontakt",
+    "gdpr": "Ochrana osobných údajov",
+    "rules": "Pravidlá strelnice",
+    "impressum": "Impressum",
+    "loading": "Načítava sa...",
+    "save": "Uložiť",
+    "cancel": "Zrušiť",
+    "confirm": "Potvrdiť",
+    "back": "Späť",
+    "error": "Chyba",
+    "success": "Úspech"
+  },
+  "landing": {
+    "title": "Strelnica",
+    "subtitle": "Rezervačný systém"
+  }
+}
