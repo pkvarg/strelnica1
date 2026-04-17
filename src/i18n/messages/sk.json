@@ -168,7 +168,10 @@
     "title": "Dostupnosť",
     "available": "Voľné",
     "booked": "Obsadené",
-    "closed": "Zatvorené"
+    "closed": "Zatvorené",
+    "open": "Otvorené",
+    "prev": "Predchádzajúci",
+    "next": "Nasledujúci"
   },
   "passwordReset": {
     "title": "Obnovenie hesla",

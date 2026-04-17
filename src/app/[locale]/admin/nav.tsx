@@ -17,6 +17,7 @@ import {
   FileCheck,
   Shield,
   Settings,
+  AlertTriangle,
   ExternalLink,
   LogOut,
 } from "lucide-react";
@@ -42,6 +43,7 @@ interface NavLink {
   href: string;
   label: string;
   icon: LucideIcon;
+  danger?: boolean;
 }
 
 interface NavGroup {
@@ -90,6 +92,12 @@ export function AdminNav({ user, labels, locale }: AdminNavProps) {
         { href: `/${locale}/admin/nastavenia`, label: "Nastavenia", icon: Settings },
       ],
     },
+    {
+      title: "Danger Zone",
+      links: [
+        { href: `/${locale}/admin/danger-zone`, label: "Danger Zone", icon: AlertTriangle, danger: true },
+      ],
+    },
   ];
 
   const externalLinks = [
@@ -114,17 +122,24 @@ export function AdminNav({ user, labels, locale }: AdminNavProps) {
             {group.links.map((link) => {
               const isActive = pathname === link.href;
               const Icon = link.icon;
+              const activeClass = link.danger
+                ? "bg-red-950/40 font-medium text-red-400"
+                : "bg-zinc-800 font-medium text-amber-500";
+              const inactiveClass = link.danger
+                ? "text-red-500/80 hover:bg-red-950/30 hover:text-red-400"
+                : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200";
+              const iconClass = isActive
+                ? link.danger ? "text-red-400" : "text-amber-500"
+                : link.danger ? "text-red-500/70" : "text-zinc-500";
               return (
                 <Link
                   key={link.href}
                   href={link.href}
                   className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors ${
-                    isActive
-                      ? "bg-zinc-800 font-medium text-amber-500"
-                      : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200"
+                    isActive ? activeClass : inactiveClass
                   }`}
                 >
-                  <Icon size={16} className={isActive ? "text-amber-500" : "text-zinc-500"} />
+                  <Icon size={16} className={iconClass} />
                   {link.label}
                 </Link>
               );

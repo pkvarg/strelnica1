@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 
 interface DayRange {
@@ -31,21 +33,46 @@ interface AvailabilityData {
   days: Day[];
 }
 
-function formatDate(dateStr: string, locale: string): string {
-  const date = new Date(dateStr + "T12:00:00");
-  if (locale === "hu") {
-    return date.toLocaleDateString("hu-HU", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+function hourToMin(s: string): number {
+  const [h, m] = s.split(":").map(Number);
+  return h * 60 + (m || 0);
+}
+
+function computeFreeSlots(dr: DayRange): string[] {
+  if (!dr.open || !dr.startTime || !dr.endTime) return [];
+  const startMin = hourToMin(dr.startTime);
+  const endMin = hourToMin(dr.endTime);
+  const startHour = Math.ceil(startMin / 60);
+  const endHour = Math.floor(endMin / 60);
+  const free: string[] = [];
+  for (let h = startHour; h < endHour; h++) {
+    const slotStart = h * 60;
+    const slotEnd = slotStart + 60;
+    const taken = dr.bookedSlots.some((b) => {
+      const bs = hourToMin(b.start);
+      const be = hourToMin(b.end);
+      return bs < slotEnd && be > slotStart;
     });
+    if (!taken) free.push(`${String(h).padStart(2, "0")}:00`);
   }
-  const weekday = date.toLocaleDateString("sk-SK", { weekday: "long" });
-  const day = date.getDate();
-  const month = date.toLocaleDateString("sk-SK", { month: "long" });
-  const year = date.getFullYear();
-  return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)} ${day}. ${month} ${year}`;
+  return free;
+}
+
+function formatDay(dateStr: string, locale: string): string {
+  const date = new Date(dateStr + "T12:00:00");
+  const weekday = date.toLocaleDateString(locale === "hu" ? "hu-HU" : "sk-SK", {
+    weekday: "short",
+  });
+  return `${weekday}, ${date.getDate()}.`;
+}
+
+function monthLabel(year: number, month: number, locale: string): string {
+  const d = new Date(year, month - 1, 1);
+  const label = d.toLocaleDateString(locale === "hu" ? "hu-HU" : "sk-SK", {
+    month: "long",
+    year: "numeric",
+  });
+  return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
 function isToday(dateStr: string): boolean {
@@ -55,21 +82,54 @@ function isToday(dateStr: string): boolean {
 export function AvailabilityCalendar() {
   const t = useTranslations("calendar");
   const locale = useLocale();
+
+  const today = new Date();
+  const [year, setYear] = useState(today.getFullYear());
+  const [month, setMonth] = useState(today.getMonth() + 1);
+
   const [data, setData] = useState<AvailabilityData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/availability")
+    setLoading(true);
+    const monthStr = `${year}-${String(month).padStart(2, "0")}`;
+    fetch(`/api/availability?month=${monthStr}`)
       .then((r) => r.json())
-      .then(setData);
-  }, []);
+      .then((d: AvailabilityData) => {
+        setData(d);
+        setLoading(false);
+      });
+  }, [year, month]);
 
-  if (!data) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-700 border-t-amber-500" />
-      </div>
-    );
+  function goPrev() {
+    if (month === 1) {
+      setMonth(12);
+      setYear(year - 1);
+    } else {
+      setMonth(month - 1);
+    }
   }
+
+  function goNext() {
+    if (month === 12) {
+      setMonth(1);
+      setYear(year + 1);
+    } else {
+      setMonth(month + 1);
+    }
+  }
+
+  const label = useMemo(() => monthLabel(year, month, locale), [year, month, locale]);
+
+  const atOrBeforeCurrentMonth =
+    year < today.getFullYear() ||
+    (year === today.getFullYear() && month <= today.getMonth() + 1);
+
+  const todayStr = today.toISOString().split("T")[0];
+  const visibleDays = useMemo(
+    () => (data?.days ?? []).filter((d) => d.date >= todayStr),
+    [data, todayStr],
+  );
 
   return (
     <div>
@@ -81,14 +141,35 @@ export function AvailabilityCalendar() {
         <div className="h-px flex-1 bg-zinc-800" />
       </div>
 
-      <div className="mb-6 flex gap-5 text-xs">
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <button
+          type="button"
+          onClick={goPrev}
+          disabled={atOrBeforeCurrentMonth}
+          aria-label={t("prev")}
+          className="group inline-flex items-center gap-2 rounded-lg border border-amber-600/40 bg-amber-600/10 px-4 py-2 text-sm font-semibold text-amber-500 transition-colors hover:border-amber-500 hover:bg-amber-600/20 hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-amber-600/40 disabled:hover:bg-amber-600/10"
+        >
+          <ChevronLeft size={28} strokeWidth={2.5} />
+          <span className="hidden sm:inline">{t("prev")}</span>
+        </button>
+        <div className="font-[family-name:var(--font-bebas)] text-2xl tracking-wider text-zinc-100">
+          {label}
+        </div>
+        <button
+          type="button"
+          onClick={goNext}
+          aria-label={t("next")}
+          className="group inline-flex items-center gap-2 rounded-lg border border-amber-600/40 bg-amber-600/10 px-4 py-2 text-sm font-semibold text-amber-500 transition-colors hover:border-amber-500 hover:bg-amber-600/20 hover:text-amber-400"
+        >
+          <span className="hidden sm:inline">{t("next")}</span>
+          <ChevronRight size={28} strokeWidth={2.5} />
+        </button>
+      </div>
+
+      <div className="mb-6 flex flex-wrap gap-5 text-xs">
         <span className="flex items-center gap-2">
           <span className="inline-block h-2.5 w-2.5 rounded-sm bg-emerald-600" />
           <span className="text-zinc-400">{t("available")}</span>
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-red-600" />
-          <span className="text-zinc-400">{t("booked")}</span>
         </span>
         <span className="flex items-center gap-2">
           <span className="inline-block h-2.5 w-2.5 rounded-sm bg-zinc-700" />
@@ -96,81 +177,131 @@ export function AvailabilityCalendar() {
         </span>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/40">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-zinc-800 bg-zinc-900/60">
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                {locale === "hu" ? "Dátum" : "Dátum"}
-              </th>
-              {data.ranges.map((r) => (
-                <th
-                  key={r.id}
-                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500"
-                >
-                  {locale === "hu" ? r.nameHu : r.nameSk}
+      {loading || !data ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-700 border-t-amber-500" />
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/40">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-zinc-800 bg-zinc-900/60">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                  {locale === "hu" ? "Dátum" : "Dátum"}
                 </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {data.days.map((day) => {
-              const today = isToday(day.date);
-              return (
-                <tr
-                  key={day.date}
-                  className={`border-b border-zinc-800/50 transition-colors hover:bg-zinc-800/30 ${today ? "bg-amber-950/10" : ""}`}
-                >
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span className={`text-sm font-medium ${today ? "text-amber-500" : "text-zinc-300"}`}>
-                      {formatDate(day.date, locale)}
-                    </span>
+                {data.ranges.map((r) => (
+                  <th
+                    key={r.id}
+                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500"
+                  >
+                    {locale === "hu" ? r.nameHu : r.nameSk}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {visibleDays.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={data.ranges.length + 1}
+                    className="px-4 py-12 text-center text-sm text-zinc-500"
+                  >
+                    —
                   </td>
-                  {day.ranges.map((dr) => (
-                    <td key={dr.rangeId} className="px-4 py-3">
-                      {!dr.open ? (
-                        <span className="inline-flex items-center rounded bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-500">
-                          {dr.closed &&
-                          (locale === "hu"
-                            ? dr.closureReasonHu
-                            : dr.closureReasonSk)
-                            ? locale === "hu"
-                              ? dr.closureReasonHu
-                              : dr.closureReasonSk
-                            : t("closed")}
-                        </span>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-zinc-500">
-                            {dr.startTime} - {dr.endTime}
-                          </span>
-                          {dr.bookedSlots.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
-                              {dr.bookedSlots.map((s, i) => (
-                                <span
-                                  key={i}
-                                  className="rounded bg-red-600/20 px-2 py-0.5 text-xs font-medium text-red-400 ring-1 ring-red-600/30"
-                                >
-                                  {s.start}-{s.end}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                          {dr.bookedSlots.length === 0 && (
-                            <span className="rounded bg-emerald-600/15 px-2 py-0.5 text-xs font-medium text-emerald-400 ring-1 ring-emerald-600/30">
-                              {t("available")}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                  ))}
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+              ) : (
+                visibleDays.map((day) => {
+                  const today = isToday(day.date);
+                  return (
+                    <tr
+                      key={day.date}
+                      className={`border-b border-zinc-800/50 transition-colors hover:bg-zinc-800/30 ${today ? "bg-amber-950/10" : ""}`}
+                    >
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`text-sm font-medium ${today ? "text-amber-500" : "text-zinc-300"}`}>
+                          {formatDay(day.date, locale)}
+                        </span>
+                      </td>
+                      {day.ranges.map((dr) => (
+                        <td key={dr.rangeId} className="px-4 py-3">
+                          <DayCell dr={dr} date={day.date} locale={locale} past={false} t={t} />
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface DayCellProps {
+  dr: DayRange;
+  date: string;
+  locale: string;
+  past: boolean;
+  t: ReturnType<typeof useTranslations>;
+}
+
+function DayCell({ dr, date, locale, past, t }: DayCellProps) {
+  if (!dr.open) {
+    const reason =
+      dr.closed && (locale === "hu" ? dr.closureReasonHu : dr.closureReasonSk);
+    return (
+      <span className="inline-flex items-center rounded bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-500">
+        {reason || t("closed")}
+      </span>
+    );
+  }
+
+  const freeSlots = computeFreeSlots(dr);
+
+  if (dr.bookedSlots.length === 0) {
+    if (past) {
+      return (
+        <span className="rounded bg-emerald-600/10 px-2 py-0.5 text-xs font-medium text-emerald-600/60 ring-1 ring-emerald-600/20">
+          {t("available")}
+        </span>
+      );
+    }
+    return (
+      <Link
+        href={`/${locale}/prihlasenie`}
+        className="inline-block rounded bg-emerald-600/15 px-2 py-0.5 text-xs font-medium text-emerald-400 ring-1 ring-emerald-600/30 transition-colors hover:bg-emerald-600/25 hover:text-emerald-300"
+      >
+        {t("available")}
+      </Link>
+    );
+  }
+
+  if (freeSlots.length === 0) {
+    return (
+      <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs font-medium text-zinc-500">
+        —
+      </span>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {freeSlots.map((s) => (
+        <Link
+          key={s}
+          href={past ? "#" : `/${locale}/prihlasenie`}
+          aria-disabled={past}
+          className={
+            past
+              ? "rounded px-2 py-0.5 text-xs font-mono text-zinc-600 ring-1 ring-zinc-800"
+              : "rounded bg-emerald-600/15 px-2 py-0.5 text-xs font-mono text-emerald-400 ring-1 ring-emerald-600/30 transition-colors hover:bg-emerald-600/25 hover:text-emerald-300"
+          }
+        >
+          {s}
+        </Link>
+      ))}
     </div>
   );
 }

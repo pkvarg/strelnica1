@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import {
   ranges,
@@ -8,9 +8,27 @@ import {
 } from "@/db/schema";
 import { eq, and, gte, lte, or, isNull, asc, inArray } from "drizzle-orm";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const monthParam = req.nextUrl.searchParams.get("month");
   const now = new Date();
-  const twoWeeksLater = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+  let rangeStart: Date;
+  let rangeEnd: Date;
+  let totalDays: number;
+
+  if (monthParam && /^\d{4}-\d{2}$/.test(monthParam)) {
+    const [y, m] = monthParam.split("-").map(Number);
+    rangeStart = new Date(y, m - 1, 1, 0, 0, 0, 0);
+    rangeEnd = new Date(y, m, 0, 23, 59, 59, 999); // last day of month
+    totalDays = new Date(y, m, 0).getDate();
+  } else {
+    rangeStart = new Date(now);
+    rangeStart.setHours(0, 0, 0, 0);
+    rangeEnd = new Date(rangeStart.getTime() + 14 * 24 * 60 * 60 * 1000);
+    totalDays = 14;
+  }
+
+  const twoWeeksLater = rangeEnd;
 
   const allRanges = await db
     .select({ id: ranges.id, nameSk: ranges.nameSk, nameHu: ranges.nameHu })
@@ -18,7 +36,7 @@ export async function GET() {
     .where(eq(ranges.active, true))
     .orderBy(asc(ranges.sortOrder));
 
-  const todayStr = now.toISOString().split("T")[0];
+  const todayStr = rangeStart.toISOString().split("T")[0];
   const endStr = twoWeeksLater.toISOString().split("T")[0];
 
   const hours = await db
@@ -38,7 +56,7 @@ export async function GET() {
     .select()
     .from(closures)
     .where(
-      and(lte(closures.startsAt, twoWeeksLater), gte(closures.endsAt, now)),
+      and(lte(closures.startsAt, twoWeeksLater), gte(closures.endsAt, rangeStart)),
     );
 
   const activeBookings = await db
@@ -51,7 +69,7 @@ export async function GET() {
     .from(bookings)
     .where(
       and(
-        gte(bookings.startsAt, now),
+        gte(bookings.startsAt, rangeStart),
         lte(bookings.startsAt, twoWeeksLater),
         inArray(bookings.status, ["requested", "approved", "checked_in"]),
       ),
@@ -72,8 +90,8 @@ export async function GET() {
     }[];
   }[] = [];
 
-  for (let d = 0; d < 14; d++) {
-    const date = new Date(now);
+  for (let d = 0; d < totalDays; d++) {
+    const date = new Date(rangeStart);
     date.setDate(date.getDate() + d);
     const dateStr = date.toISOString().split("T")[0];
     const weekday = date.getDay();

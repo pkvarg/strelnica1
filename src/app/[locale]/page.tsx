@@ -1,6 +1,8 @@
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { AvailabilityCalendar } from "./availability-calendar";
+import { OpeningHoursPanel } from "./opening-hours-panel";
+import { OpenNowBadge } from "./open-now-badge";
 
 function TargetDecoration() {
   return (
@@ -72,10 +74,7 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-b from-amber-950/10 via-transparent to-transparent" />
         <div className="relative mx-auto max-w-6xl px-4 py-24 sm:py-32">
           <div className="max-w-2xl">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900/60 px-3 py-1 text-xs text-zinc-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-              {t("calendar.title")}
-            </div>
+            <OpenNowBadge />
             <h1 className="font-[family-name:var(--font-bebas)] text-5xl leading-[1.1] tracking-wide text-zinc-50 sm:text-7xl">
               {t("landing.heroHeadline")}
             </h1>
@@ -124,6 +123,12 @@ export default function HomePage() {
               icon="shotgun"
             />
           </div>
+        </div>
+      </section>
+
+      <section className="border-b border-zinc-800">
+        <div className="mx-auto max-w-6xl px-4 py-20">
+          <OpeningHoursPanel />
         </div>
       </section>
 

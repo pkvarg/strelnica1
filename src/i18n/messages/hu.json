@@ -168,7 +168,10 @@
     "title": "Elérhetőség",
     "available": "Szabad",
     "booked": "Foglalt",
-    "closed": "Zárva"
+    "closed": "Zárva",
+    "open": "Nyitva",
+    "prev": "Előző",
+    "next": "Következő"
   },
   "passwordReset": {
     "title": "Jelszó visszaállítása",
