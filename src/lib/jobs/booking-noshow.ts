@@ -7,8 +7,9 @@ import type { PgBoss } from "pg-boss";
 
 export const BOOKING_NOSHOW_SWEEP = "booking.noShowSweep";
 
-export function registerNoShowHandler(boss: PgBoss) {
-  boss.work<{ bookingId: string }>(BOOKING_NOSHOW_SWEEP, async (jobs) => {
+export async function registerNoShowHandler(boss: PgBoss) {
+  await boss.createQueue(BOOKING_NOSHOW_SWEEP);
+  await boss.work<{ bookingId: string }>(BOOKING_NOSHOW_SWEEP, async (jobs) => {
     for (const job of jobs) {
       const { bookingId } = job.data;
 

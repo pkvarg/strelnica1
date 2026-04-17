@@ -13,8 +13,9 @@ function daysUntil(target: Date, now: Date): number {
   return Math.floor(ms / (1000 * 60 * 60 * 24));
 }
 
-export function registerLicenseExpiryHandler(boss: PgBoss) {
-  boss.work(LICENSE_EXPIRY_SCAN, async () => {
+export async function registerLicenseExpiryHandler(boss: PgBoss) {
+  await boss.createQueue(LICENSE_EXPIRY_SCAN);
+  await boss.work(LICENSE_EXPIRY_SCAN, async () => {
     const now = new Date();
     const rows = await db
       .select({

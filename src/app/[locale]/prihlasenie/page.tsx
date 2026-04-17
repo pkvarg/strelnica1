@@ -1,9 +1,10 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Link from "next/link";
 import { loginAction } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
   const t = useTranslations("auth");
+  const locale = useLocale();
   const router = useRouter();
   const [state, formAction, isPending] = useActionState(loginAction, null);
 
@@ -56,9 +58,22 @@ export default function LoginPage() {
             <p className="text-sm text-red-600">{t(state.error)}</p>
           )}
 
-          <Button type="submit" className="w-full" disabled={isPending}>
+          <Button
+            type="submit"
+            className="w-full bg-amber-600 text-zinc-950 hover:bg-amber-500"
+            disabled={isPending}
+          >
             {isPending ? "..." : t("loginButton")}
           </Button>
+
+          <div className="text-center text-sm">
+            <Link
+              href={`/${locale}/reset-hesla`}
+              className="text-zinc-500 transition-colors hover:text-amber-500 hover:underline"
+            >
+              {t("forgotPassword")}
+            </Link>
+          </div>
         </form>
       </div>
     </div>

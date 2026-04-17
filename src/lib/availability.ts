@@ -2,6 +2,11 @@ import { db } from "@/db";
 import { openingHoursTemplates, closures } from "@/db/schema";
 import { eq, and, lte, or, isNull, gte } from "drizzle-orm";
 
+function timeToMin(s: string): number {
+  const [h, m] = s.split(":").map(Number);
+  return h * 60 + (m || 0);
+}
+
 export async function isWithinOpeningHours(
   rangeId: string,
   startsAt: Date,
@@ -27,11 +32,11 @@ export async function isWithinOpeningHours(
 
   if (hours.length === 0) return false;
 
-  const startTimeStr = startsAt.toTimeString().slice(0, 5);
-  const endTimeStr = endsAt.toTimeString().slice(0, 5);
+  const startMin = startsAt.getHours() * 60 + startsAt.getMinutes();
+  const endMin = endsAt.getHours() * 60 + endsAt.getMinutes();
 
   return hours.some(
-    (h) => startTimeStr >= h.startTime && endTimeStr <= h.endTime,
+    (h) => startMin >= timeToMin(h.startTime) && endMin <= timeToMin(h.endTime),
   );
 }
 

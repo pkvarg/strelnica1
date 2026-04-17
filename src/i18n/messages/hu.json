@@ -150,6 +150,10 @@
     "closedRange": "A lőtér ebben az időpontban zárva van",
     "noBookings": "Nincsenek foglalások",
     "newBooking": "Új foglalás",
+    "availableSlots": "Szabad órák",
+    "selectDateFirst": "Először válasszon lőteret és dátumot",
+    "noSlots": "Ezen a napon nincs szabad óra",
+    "rangeClosed": "A lőtér ezen a napon zárva van",
     "status": {
       "requested": "Jóváhagyásra vár",
       "approved": "Jóváhagyott",

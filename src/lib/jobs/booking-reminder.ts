@@ -7,8 +7,9 @@ import type { PgBoss } from "pg-boss";
 
 export const BOOKING_REMINDER = "booking.reminder";
 
-export function registerBookingReminderHandler(boss: PgBoss) {
-  boss.work<{ bookingId: string }>(BOOKING_REMINDER, async (jobs) => {
+export async function registerBookingReminderHandler(boss: PgBoss) {
+  await boss.createQueue(BOOKING_REMINDER);
+  await boss.work<{ bookingId: string }>(BOOKING_REMINDER, async (jobs) => {
     for (const job of jobs) {
       const { bookingId } = job.data;
 

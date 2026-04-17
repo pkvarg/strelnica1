@@ -5,8 +5,9 @@ import type { PgBoss } from "pg-boss";
 
 export const RETENTION_SWEEP = "retention.sweep";
 
-export function registerRetentionSweepHandler(boss: PgBoss) {
-  boss.work(RETENTION_SWEEP, async () => {
+export async function registerRetentionSweepHandler(boss: PgBoss) {
+  await boss.createQueue(RETENTION_SWEEP);
+  await boss.work(RETENTION_SWEEP, async () => {
     const now = new Date();
 
     // Contact messages: 1 year

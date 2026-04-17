@@ -5,8 +5,9 @@ import type { PgBoss } from "pg-boss";
 
 export const BOOKING_AUTO_COMPLETE = "booking.autoComplete";
 
-export function registerAutoCompleteHandler(boss: PgBoss) {
-  boss.work<{ bookingId: string }>(BOOKING_AUTO_COMPLETE, async (jobs) => {
+export async function registerAutoCompleteHandler(boss: PgBoss) {
+  await boss.createQueue(BOOKING_AUTO_COMPLETE);
+  await boss.work<{ bookingId: string }>(BOOKING_AUTO_COMPLETE, async (jobs) => {
     for (const job of jobs) {
       const { bookingId } = job.data;
 

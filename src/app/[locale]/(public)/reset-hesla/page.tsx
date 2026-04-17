@@ -35,7 +35,11 @@ export default function RequestResetPage() {
               <p className="text-sm text-red-600">{state.error}</p>
             )}
 
-            <Button type="submit" className="w-full" disabled={isPending}>
+            <Button
+              type="submit"
+              className="w-full bg-amber-600 text-zinc-950 hover:bg-amber-500"
+              disabled={isPending}
+            >
               {isPending ? "..." : t("send")}
             </Button>
           </form>

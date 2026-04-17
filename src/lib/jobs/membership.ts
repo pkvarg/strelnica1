@@ -9,8 +9,9 @@ export const MEMBERSHIP_REMINDER = "membership.reminder";
 
 const DEFAULT_FEE = process.env.MEMBERSHIP_DEFAULT_FEE || "50.00";
 
-export function registerMembershipRolloverHandler(boss: PgBoss) {
-  boss.work(MEMBERSHIP_ROLLOVER, async () => {
+export async function registerMembershipRolloverHandler(boss: PgBoss) {
+  await boss.createQueue(MEMBERSHIP_ROLLOVER);
+  await boss.work(MEMBERSHIP_ROLLOVER, async () => {
     const year = new Date().getFullYear();
 
     const activeMembers = await db
@@ -38,8 +39,9 @@ export function registerMembershipRolloverHandler(boss: PgBoss) {
   });
 }
 
-export function registerMembershipReminderHandler(boss: PgBoss) {
-  boss.work(MEMBERSHIP_REMINDER, async () => {
+export async function registerMembershipReminderHandler(boss: PgBoss) {
+  await boss.createQueue(MEMBERSHIP_REMINDER);
+  await boss.work(MEMBERSHIP_REMINDER, async () => {
     const year = new Date().getFullYear();
 
     const unpaid = await db

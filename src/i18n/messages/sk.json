@@ -150,6 +150,10 @@
     "closedRange": "Strelnica je v tomto termíne uzavretá",
     "noBookings": "Žiadne rezervácie",
     "newBooking": "Nová rezervácia",
+    "availableSlots": "Voľné hodiny",
+    "selectDateFirst": "Najprv vyberte strelnicu a dátum",
+    "noSlots": "V tento deň nie sú voľné hodiny",
+    "rangeClosed": "Strelnica je v tento deň zatvorená",
     "status": {
       "requested": "Čaká na schválenie",
       "approved": "Schválená",

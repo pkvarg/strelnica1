@@ -5,8 +5,9 @@ import type { PgBoss } from "pg-boss";
 
 export const BOOKING_REQUEST_EXPIRY = "booking.requestExpiry";
 
-export function registerBookingExpiryHandler(boss: PgBoss) {
-  boss.work<{ bookingId: string }>(BOOKING_REQUEST_EXPIRY, async (jobs) => {
+export async function registerBookingExpiryHandler(boss: PgBoss) {
+  await boss.createQueue(BOOKING_REQUEST_EXPIRY);
+  await boss.work<{ bookingId: string }>(BOOKING_REQUEST_EXPIRY, async (jobs) => {
     for (const job of jobs) {
     const { bookingId } = job.data;
 

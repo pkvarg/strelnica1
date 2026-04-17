@@ -14,24 +14,28 @@ async function phoneIfAllowed(
 const HONO_URL = process.env.NEXT_PUBLIC_HONO_API_URL || "https://hono.pictusweb.sk";
 const API_TOKEN = process.env.STRELNICA_API_TOKEN || "";
 
-async function callHono(
+export async function callHono(
   endpoint: string,
   payload: Record<string, unknown>,
 ): Promise<{ success: boolean; error?: string }> {
-  const res = await fetch(`${HONO_URL}/api/strelnica/${endpoint}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${API_TOKEN}`,
-    },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const res = await fetch(`${HONO_URL}/api/strelnica/${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${API_TOKEN}`,
+      },
+      body: JSON.stringify(payload),
+    });
 
-  const data = await res.json().catch(() => ({}));
-  return { success: res.ok, error: data.error };
+    const data = await res.json().catch(() => ({}));
+    return { success: res.ok, error: data.error };
+  } catch (e) {
+    return { success: false, error: (e as Error).message };
+  }
 }
 
-async function logNotification(opts: {
+export async function logNotification(opts: {
   channel: "email" | "sms";
   to: string;
   template: string;
@@ -152,30 +156,31 @@ export async function notifyAdminsBookingRequest(opts: {
   locale: string;
   bookingId: string;
 }) {
+  const { enqueueNotify } = await import("@/lib/jobs/notify-send");
   for (const admin of opts.admins) {
-    const result = await callHono("booking-request-admin", {
-      email: admin.email,
-      phone: await phoneIfAllowed("admin", admin.phone),
-      memberName: opts.memberName,
-      memberEmail: opts.memberEmail,
-      rangeId: opts.rangeId,
-      date: opts.date,
-      time: opts.time,
-      guestCount: opts.guestCount,
-      note: opts.note,
-      approveUrl: admin.approveUrl,
-      declineUrl: admin.declineUrl,
-      locale: opts.locale,
-    });
-
-    await logNotification({
-      channel: "email",
-      to: admin.email,
-      template: "booking_request_admin",
-      locale: opts.locale,
-      bookingId: opts.bookingId,
-      status: result.success ? "sent" : "failed",
-      providerResponse: result,
+    await enqueueNotify({
+      endpoint: "booking-request-admin",
+      payload: {
+        email: admin.email,
+        phone: await phoneIfAllowed("admin", admin.phone),
+        memberName: opts.memberName,
+        memberEmail: opts.memberEmail,
+        rangeId: opts.rangeId,
+        date: opts.date,
+        time: opts.time,
+        guestCount: opts.guestCount,
+        note: opts.note,
+        approveUrl: admin.approveUrl,
+        declineUrl: admin.declineUrl,
+        locale: opts.locale,
+      },
+      log: {
+        channel: "email",
+        to: admin.email,
+        template: "booking_request_admin",
+        locale: opts.locale,
+        bookingId: opts.bookingId,
+      },
     });
   }
 }
@@ -191,28 +196,27 @@ export async function notifyMemberBookingApproved(opts: {
   bookingId: string;
   userId: string;
 }) {
-  const emailResult = await callHono("booking-approved", {
-    email: opts.email,
-    phone: await phoneIfAllowed("member", opts.phone),
-    memberName: opts.memberName,
-    rangeId: opts.rangeId,
-    date: opts.date,
-    time: opts.time,
-    locale: opts.locale,
+  const { enqueueNotify } = await import("@/lib/jobs/notify-send");
+  await enqueueNotify({
+    endpoint: "booking-approved",
+    payload: {
+      email: opts.email,
+      phone: await phoneIfAllowed("member", opts.phone),
+      memberName: opts.memberName,
+      rangeId: opts.rangeId,
+      date: opts.date,
+      time: opts.time,
+      locale: opts.locale,
+    },
+    log: {
+      channel: "email",
+      to: opts.email,
+      template: "booking_approved",
+      locale: opts.locale,
+      bookingId: opts.bookingId,
+      userId: opts.userId,
+    },
   });
-
-  await logNotification({
-    channel: "email",
-    to: opts.email,
-    template: "booking_approved",
-    locale: opts.locale,
-    bookingId: opts.bookingId,
-    userId: opts.userId,
-    status: emailResult.success ? "sent" : "failed",
-    providerResponse: emailResult,
-  });
-
-  return emailResult;
 }
 
 export async function notifyMemberBookingDeclined(opts: {
@@ -227,29 +231,28 @@ export async function notifyMemberBookingDeclined(opts: {
   bookingId: string;
   userId: string;
 }) {
-  const result = await callHono("booking-declined", {
-    email: opts.email,
-    phone: await phoneIfAllowed("member", opts.phone),
-    memberName: opts.memberName,
-    rangeId: opts.rangeId,
-    date: opts.date,
-    time: opts.time,
-    reason: opts.reason,
-    locale: opts.locale,
+  const { enqueueNotify } = await import("@/lib/jobs/notify-send");
+  await enqueueNotify({
+    endpoint: "booking-declined",
+    payload: {
+      email: opts.email,
+      phone: await phoneIfAllowed("member", opts.phone),
+      memberName: opts.memberName,
+      rangeId: opts.rangeId,
+      date: opts.date,
+      time: opts.time,
+      reason: opts.reason,
+      locale: opts.locale,
+    },
+    log: {
+      channel: "email",
+      to: opts.email,
+      template: "booking_declined",
+      locale: opts.locale,
+      bookingId: opts.bookingId,
+      userId: opts.userId,
+    },
   });
-
-  await logNotification({
-    channel: "email",
-    to: opts.email,
-    template: "booking_declined",
-    locale: opts.locale,
-    bookingId: opts.bookingId,
-    userId: opts.userId,
-    status: result.success ? "sent" : "failed",
-    providerResponse: result,
-  });
-
-  return result;
 }
 
 export async function notifyBookingReminder(opts: {
@@ -264,29 +267,28 @@ export async function notifyBookingReminder(opts: {
   bookingId: string;
   userId: string;
 }) {
-  const emailResult = await callHono("booking-reminder", {
-    email: opts.email,
-    phone: await phoneIfAllowed("member", opts.phone),
-    memberName: opts.memberName,
-    rangeId: opts.rangeId,
-    date: opts.date,
-    time: opts.time,
-    checkInUrl: opts.checkInUrl,
-    locale: opts.locale,
+  const { enqueueNotify } = await import("@/lib/jobs/notify-send");
+  await enqueueNotify({
+    endpoint: "booking-reminder",
+    payload: {
+      email: opts.email,
+      phone: await phoneIfAllowed("member", opts.phone),
+      memberName: opts.memberName,
+      rangeId: opts.rangeId,
+      date: opts.date,
+      time: opts.time,
+      checkInUrl: opts.checkInUrl,
+      locale: opts.locale,
+    },
+    log: {
+      channel: "email",
+      to: opts.email,
+      template: "booking_reminder",
+      locale: opts.locale,
+      bookingId: opts.bookingId,
+      userId: opts.userId,
+    },
   });
-
-  await logNotification({
-    channel: "email",
-    to: opts.email,
-    template: "booking_reminder",
-    locale: opts.locale,
-    bookingId: opts.bookingId,
-    userId: opts.userId,
-    status: emailResult.success ? "sent" : "failed",
-    providerResponse: emailResult,
-  });
-
-  return emailResult;
 }
 
 export async function notifyPasswordReset(opts: {
@@ -328,29 +330,28 @@ export async function notifyMemberBookingCancelled(opts: {
   bookingId: string;
   userId: string;
 }) {
-  const result = await callHono("booking-cancelled", {
-    email: opts.email,
-    phone: await phoneIfAllowed("member", opts.phone),
-    memberName: opts.memberName,
-    rangeId: opts.rangeId,
-    date: opts.date,
-    time: opts.time,
-    cancelledBy: opts.cancelledBy,
-    locale: opts.locale,
+  const { enqueueNotify } = await import("@/lib/jobs/notify-send");
+  await enqueueNotify({
+    endpoint: "booking-cancelled",
+    payload: {
+      email: opts.email,
+      phone: await phoneIfAllowed("member", opts.phone),
+      memberName: opts.memberName,
+      rangeId: opts.rangeId,
+      date: opts.date,
+      time: opts.time,
+      cancelledBy: opts.cancelledBy,
+      locale: opts.locale,
+    },
+    log: {
+      channel: "email",
+      to: opts.email,
+      template: "booking_cancelled",
+      locale: opts.locale,
+      bookingId: opts.bookingId,
+      userId: opts.userId,
+    },
   });
-
-  await logNotification({
-    channel: "email",
-    to: opts.email,
-    template: "booking_cancelled",
-    locale: opts.locale,
-    bookingId: opts.bookingId,
-    userId: opts.userId,
-    status: result.success ? "sent" : "failed",
-    providerResponse: result,
-  });
-
-  return result;
 }
 
 export async function notifyNoShow(opts: {
@@ -363,27 +364,26 @@ export async function notifyNoShow(opts: {
   bookingId: string;
   userId: string;
 }) {
-  const result = await callHono("no-show", {
-    email: opts.email,
-    phone: await phoneIfAllowed("member", opts.phone),
-    memberName: opts.memberName,
-    rangeId: opts.rangeId,
-    date: opts.date,
-    locale: opts.locale,
+  const { enqueueNotify } = await import("@/lib/jobs/notify-send");
+  await enqueueNotify({
+    endpoint: "no-show",
+    payload: {
+      email: opts.email,
+      phone: await phoneIfAllowed("member", opts.phone),
+      memberName: opts.memberName,
+      rangeId: opts.rangeId,
+      date: opts.date,
+      locale: opts.locale,
+    },
+    log: {
+      channel: "email",
+      to: opts.email,
+      template: "no_show",
+      locale: opts.locale,
+      bookingId: opts.bookingId,
+      userId: opts.userId,
+    },
   });
-
-  await logNotification({
-    channel: "email",
-    to: opts.email,
-    template: "no_show",
-    locale: opts.locale,
-    bookingId: opts.bookingId,
-    userId: opts.userId,
-    status: result.success ? "sent" : "failed",
-    providerResponse: result,
-  });
-
-  return result;
 }
 
 export async function notifyLicenseExpiring(opts: {
@@ -394,25 +394,24 @@ export async function notifyLicenseExpiring(opts: {
   locale: string;
   userId: string;
 }) {
-  const result = await callHono("license-expiring", {
-    email: opts.email,
-    phone: await phoneIfAllowed("member", opts.phone),
-    memberName: opts.memberName,
-    daysLeft: opts.daysLeft,
-    locale: opts.locale,
+  const { enqueueNotify } = await import("@/lib/jobs/notify-send");
+  await enqueueNotify({
+    endpoint: "license-expiring",
+    payload: {
+      email: opts.email,
+      phone: await phoneIfAllowed("member", opts.phone),
+      memberName: opts.memberName,
+      daysLeft: opts.daysLeft,
+      locale: opts.locale,
+    },
+    log: {
+      channel: "email",
+      to: opts.email,
+      template: "license_expiring",
+      locale: opts.locale,
+      userId: opts.userId,
+    },
   });
-
-  await logNotification({
-    channel: "email",
-    to: opts.email,
-    template: "license_expiring",
-    locale: opts.locale,
-    userId: opts.userId,
-    status: result.success ? "sent" : "failed",
-    providerResponse: result,
-  });
-
-  return result;
 }
 
 export async function notifyMembershipReminder(opts: {
@@ -423,25 +422,24 @@ export async function notifyMembershipReminder(opts: {
   locale: string;
   userId: string;
 }) {
-  const result = await callHono("membership-reminder", {
-    email: opts.email,
-    phone: await phoneIfAllowed("member", opts.phone),
-    memberName: opts.memberName,
-    year: opts.year,
-    locale: opts.locale,
+  const { enqueueNotify } = await import("@/lib/jobs/notify-send");
+  await enqueueNotify({
+    endpoint: "membership-reminder",
+    payload: {
+      email: opts.email,
+      phone: await phoneIfAllowed("member", opts.phone),
+      memberName: opts.memberName,
+      year: opts.year,
+      locale: opts.locale,
+    },
+    log: {
+      channel: "email",
+      to: opts.email,
+      template: "membership_reminder",
+      locale: opts.locale,
+      userId: opts.userId,
+    },
   });
-
-  await logNotification({
-    channel: "email",
-    to: opts.email,
-    template: "membership_reminder",
-    locale: opts.locale,
-    userId: opts.userId,
-    status: result.success ? "sent" : "failed",
-    providerResponse: result,
-  });
-
-  return result;
 }
 
 export async function notifyContact(opts: {

@@ -10,6 +10,7 @@ import {
   registerMembershipReminderHandler,
   scheduleMembershipCrons,
 } from "./membership";
+import { registerNotifySendHandler } from "./notify-send";
 
 let registered = false;
 
@@ -17,14 +18,15 @@ export async function registerAllJobs() {
   if (registered) return;
 
   const boss = await startPgBoss();
-  registerBookingExpiryHandler(boss);
-  registerBookingReminderHandler(boss);
-  registerNoShowHandler(boss);
-  registerAutoCompleteHandler(boss);
-  registerRetentionSweepHandler(boss);
-  registerLicenseExpiryHandler(boss);
-  registerMembershipRolloverHandler(boss);
-  registerMembershipReminderHandler(boss);
+  await registerNotifySendHandler(boss);
+  await registerBookingExpiryHandler(boss);
+  await registerBookingReminderHandler(boss);
+  await registerNoShowHandler(boss);
+  await registerAutoCompleteHandler(boss);
+  await registerRetentionSweepHandler(boss);
+  await registerLicenseExpiryHandler(boss);
+  await registerMembershipRolloverHandler(boss);
+  await registerMembershipReminderHandler(boss);
 
   await scheduleRetentionSweep(boss);
   await scheduleLicenseExpiry(boss);
