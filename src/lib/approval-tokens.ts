@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { adminApprovalTokens, users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { generateToken, hashToken } from "@/lib/tokens";
 
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
@@ -9,7 +9,7 @@ export async function issueApprovalTokens(bookingId: string) {
   const admins = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.role, "admin"));
+    .where(and(eq(users.role, "admin"), eq(users.status, "active")));
 
   const tokens: { adminUserId: string; action: "approve" | "decline"; token: string }[] = [];
 

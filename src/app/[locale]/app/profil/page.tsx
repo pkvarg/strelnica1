@@ -6,6 +6,7 @@ import { updateProfile } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneChange } from "./phone-change";
 
 const ZP_CATEGORIES = ["A", "B", "C", "D", "E", "F"] as const;
 
@@ -49,10 +50,7 @@ export default function ProfilePage() {
           <Input value={user.email ?? ""} disabled />
         </div>
 
-        <div className="space-y-2">
-          <Label>{t("phone")}</Label>
-          <Input value={user.phoneE164 ?? ""} disabled />
-        </div>
+        <PhoneChange currentPhone={user.phoneE164 ?? ""} />
 
         <div className="space-y-2">
           <Label>{t("birthDate")}</Label>

@@ -106,7 +106,7 @@ export async function requestBooking(
       const adminRows = await db
         .select({ id: users.id, email: users.email, phoneE164: users.phoneE164 })
         .from(users)
-        .where(eq(users.role, "admin"));
+        .where(and(eq(users.role, "admin"), eq(users.status, "active")));
 
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
       const locale = member?.locale || "sk";

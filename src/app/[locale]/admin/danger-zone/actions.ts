@@ -6,6 +6,8 @@ import { sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { writeAudit } from "@/lib/audit";
 
 const COOKIE_NAME = "dz_unlock";
@@ -173,6 +175,39 @@ export async function deleteUserHardAction(userId: string) {
     action: "danger_zone_delete_user",
     entityType: "user",
     entityId: userId,
+  });
+
+  revalidatePath("/admin/danger-zone");
+}
+
+export async function setAdminStatusAction(
+  userId: string,
+  nextStatus: "active" | "suspended",
+) {
+  const user = await assertUnlockedAdmin();
+  if (userId === user.id) throw new Error("Nemôžete meniť svoj vlastný status");
+
+  const [row] = await db
+    .select({ id: users.id, role: users.role, status: users.status })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!row) throw new Error("Admin not found");
+  if (row.role !== "admin") throw new Error("Target is not admin");
+
+  await db
+    .update(users)
+    .set({ status: nextStatus, updatedAt: new Date() })
+    .where(eq(users.id, userId));
+
+  await writeAudit({
+    actorUserId: user.id,
+    action: "danger_zone_admin_status",
+    entityType: "user",
+    entityId: userId,
+    before: { status: row.status },
+    after: { status: nextStatus },
   });
 
   revalidatePath("/admin/danger-zone");

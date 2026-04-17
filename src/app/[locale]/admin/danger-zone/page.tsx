@@ -21,6 +21,7 @@ import { UnlockForm } from "./unlock-form";
 import { DangerTable } from "./danger-table";
 import { UsersRowsTable } from "./rows-users";
 import { BookingsRowsTable } from "./rows-bookings";
+import { AdminsRowsTable } from "./rows-admins";
 import { fmtDateTime } from "@/lib/format";
 
 async function getCounts() {
@@ -97,7 +98,7 @@ export default async function DangerZonePage() {
     );
   }
 
-  const [counts, userRows, bookingRows] = await Promise.all([
+  const [counts, userRows, adminRows, bookingRows] = await Promise.all([
     getCounts(),
     db
       .select({
@@ -113,6 +114,17 @@ export default async function DangerZonePage() {
       .where(ne(users.role, "admin"))
       .orderBy(desc(users.createdAt))
       .limit(100),
+    db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        status: users.status,
+      })
+      .from(users)
+      .where(eq(users.role, "admin"))
+      .orderBy(desc(users.createdAt)),
     db
       .select({
         id: bookings.id,
@@ -151,6 +163,22 @@ export default async function DangerZonePage() {
       </div>
 
       <DangerTable counts={counts} />
+
+      <section>
+        <h2 className="mb-3 font-semibold text-zinc-200">
+          Admini{" "}
+          <span className="text-zinc-500">· {adminRows.length}</span>
+        </h2>
+        <p className="mb-3 text-xs text-zinc-500">
+          Dočasne suspenduj admina, ak potrebuješ testovať, aby notifikácie chodili len na jeden účet. Suspendovaný admin sa nevie prihlásiť. Seba zmeniť nemôžeš.
+        </p>
+        <AdminsRowsTable
+          admins={adminRows.map((a) => ({
+            ...a,
+            isSelf: a.id === session.user.id,
+          }))}
+        />
+      </section>
 
       <section>
         <h2 className="mb-3 font-semibold text-zinc-200">
