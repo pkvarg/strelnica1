@@ -7,6 +7,7 @@
     "contact": "Kapcsolat",
     "gdpr": "Adatvédelem",
     "rules": "Lőtér szabályzat",
+    "terms": "ÁSZF",
     "impressum": "Impresszum",
     "loading": "Betöltés...",
     "save": "Mentés",
@@ -25,7 +26,12 @@
     "closures": "Zárások",
     "audit": "Audit napló",
     "administration": "Adminisztráció",
-    "myAccount": "Fiókom"
+    "myAccount": "Fiókom",
+    "filter": "Szűrés",
+    "show": "Megjelenítés",
+    "saving": "Mentés...",
+    "saved": "Mentve",
+    "dash": "—"
   },
   "landing": {
     "title": "Lőtér",
@@ -84,8 +90,40 @@
     "licenseIssuedAt": "Kiállítás dátuma",
     "licenseExpiresAt": "Érvényesség",
     "licenseAuthority": "Kiállító hatóság",
+    "licenseVerifiedBadge": "Ellenőrzött",
+    "licensePendingBadge": "Érvényesítésre vár",
+    "licenseEditResetsVerification": "Az adatok módosítása visszavonja az ellenőrzést, és az adminisztrátornak újra kell hitelesítenie.",
+    "licenseChangeHint": "Csak akkor töltse ki, ha módosítani szeretné",
     "exportData": "Adataim exportálása (GDPR)",
-    "updated": "Profil frissítve"
+    "updated": "Profil frissítve",
+    "phoneChangeButton": "Módosítás",
+    "phoneNewLabel": "Új telefonszám",
+    "phoneNewHelp": "Adja meg az új számot nemzetközi formátumban, pl. +421900123456. Az új számra SMS-t küldünk az ellenőrző kóddal.",
+    "phoneSendCode": "Kód küldése",
+    "phoneVerificationCodeLabel": "Ellenőrző kód",
+    "phoneSmsSent": "A 6-jegyű kódot tartalmazó SMS elküldve a(z) {phone} számra. A kód 10 percig érvényes.",
+    "phoneVerifiedBadge": "ellenőrzött",
+    "phoneErrors": {
+      "invalidPhone": "Érvénytelen telefonszám (formátum: +421900123456)",
+      "samePhone": "Ugyanazt a telefonszámot adta meg",
+      "phoneTaken": "Ezt a telefonszámot már más fiók használja",
+      "smsDisabled": "Az SMS-ellenőrzés ideiglenesen ki van kapcsolva. Keresse fel az adminisztrátort.",
+      "sendFailed": "Nem sikerült elküldeni az SMS-t. Próbálja később.",
+      "tooManyRequests": "Túl sok próbálkozás, próbálja egy óra múlva",
+      "invalidCode": "Érvénytelen kód",
+      "expiredToken": "A kód lejárt, kérjen újat",
+      "invalidToken": "Érvénytelen kérés",
+      "tooManyAttempts": "Túl sok sikertelen próbálkozás",
+      "userNotFound": "A felhasználó nem található"
+    },
+    "stats": {
+      "visits": "Látogatások",
+      "shootingHours": "Lövészeti órák",
+      "byRange": "Lőtér szerint",
+      "byMonth": "Hónap szerint",
+      "visitsAndHours": "{visits} látogatás, {hours}h",
+      "noCompleted": "Még nincsenek befejezett foglalások"
+    }
   },
   "admin": {
     "title": "Adminisztráció",
@@ -104,7 +142,152 @@
     "anonymizeConfirm": "Biztosan anonimizálni szeretné ezt a felhasználót? Ez a művelet visszafordíthatatlan.",
     "statusChange": "Állapotváltozás",
     "pendingBookings": "Függőben lévő foglalások",
-    "todaySchedule": "Mai beosztás"
+    "todaySchedule": "Mai beosztás",
+    "allBookings": "Minden foglalás",
+    "upcoming": "Közelgő",
+    "past": "Korábbi",
+    "pageOf": "Oldal {page} / {total}",
+    "previous": "Előző",
+    "next": "Következő",
+    "edit": "Szerkesztés",
+    "allRanges": "Minden lőtér",
+    "allStatuses": "Minden állapot",
+    "columns": {
+      "member": "Tag",
+      "range": "Lőtér",
+      "date": "Dátum",
+      "time": "Idő",
+      "guests": "Vendégek",
+      "status": "Állapot",
+      "note": "Megjegyzés",
+      "name": "Név",
+      "email": "E-mail",
+      "phone": "Telefonszám",
+      "role": "Szerep",
+      "userStatus": "Állapot",
+      "created": "Létrehozva",
+      "when": "Mikor"
+    },
+    "userStatus": {
+      "active": "Aktív",
+      "suspended": "Felfüggesztett",
+      "invited": "Meghívott",
+      "pending_verification": "Megerősítésre vár",
+      "anonymized": "Anonimizált"
+    },
+    "role": {
+      "member": "Tag",
+      "admin": "Admin"
+    },
+    "locale": {
+      "sk": "Szlovák",
+      "hu": "Magyar"
+    },
+    "noPending": "Nincsenek függőben lévő kérelmek",
+    "approve": "Jóváhagyás",
+    "decline": "Elutasítás",
+    "declineReason": "Elutasítás oka",
+    "requestTime": "Kérelem",
+    "guestsWithCount": "({count} vendég)",
+    "checkIn": "Check-in",
+    "user": {
+      "name": "Név",
+      "firstName": "Keresztnév",
+      "lastName": "Vezetéknév",
+      "email": "E-mail",
+      "phone": "Telefonszám",
+      "phoneLabel": "Telefonszám (E.164)",
+      "role": "Szerep",
+      "status": "Állapot",
+      "locale": "Nyelv",
+      "created": "Létrehozva",
+      "lastLogin": "Utolsó bejelentkezés",
+      "birthDate": "Születési dátum",
+      "birthPlace": "Születési hely",
+      "street": "Utca",
+      "city": "Város",
+      "zip": "Irányítószám",
+      "country": "Ország",
+      "internalNote": "Belső megjegyzés (csak admin)",
+      "editProfile": "Profil szerkesztése",
+      "memberships": "Tagság",
+      "noMemberships": "Nincs tagság",
+      "recentBookings": "Legutóbbi foglalások",
+      "noBookings": "Nincsenek foglalások",
+      "paidOn": "fizetve {date}",
+      "unpaidShort": "nem fizetve"
+    },
+    "license": {
+      "title": "Fegyvertartási engedély",
+      "category": "Kategória",
+      "number": "Engedély száma",
+      "issuedAt": "Kiállítás dátuma",
+      "expiresAt": "Érvényesség",
+      "authority": "Kiállító hatóság",
+      "chooseOption": "-- Válasszon --",
+      "numberPlaceholder": "pl. AA-000123",
+      "authorityPlaceholder": "pl. Pozsonyi Rendőrkapitányság",
+      "verified": "Ellenőrizve {date}",
+      "unverified": "Nem ellenőrzött",
+      "expired": "(lejárt)",
+      "expiringSoon": "(hamarosan lejár)",
+      "verifyButton": "Engedély ellenőrzése",
+      "unverifyButton": "Ellenőrzés visszavonása"
+    },
+    "decide": {
+      "invalidLink": "Érvénytelen hivatkozás",
+      "linkUsed": "Ez a hivatkozás már felhasználásra került.",
+      "linkExpired": "Ez a hivatkozás lejárt.",
+      "alreadyApproved": "A foglalás már jóváhagyva.",
+      "alreadyProcessed": "A foglalás már feldolgozva.",
+      "approveTitle": "Foglalás jóváhagyása",
+      "declineTitle": "Foglalás elutasítása",
+      "approvedMessage": "A foglalás jóváhagyva.",
+      "declinedMessage": "A foglalás elutasítva."
+    },
+    "stats": {
+      "totalVisits": "Összes látogatás",
+      "totalHours": "Összes óra",
+      "byMembers": "Tagok szerint",
+      "byMonths": "Hónapok szerint",
+      "visitsAndHours": "{visits} látogatás, {hours}h",
+      "exportPdf": "Export PDF"
+    },
+    "dashboard": {
+      "visitors": "Látogatók",
+      "bots": "Botok",
+      "emails": "E-mailek"
+    },
+    "anonymized": {
+      "firstName": "Anonimizált",
+      "lastName": "Felhasználó"
+    },
+    "errors": {
+      "unauthorized": "Jogosulatlan",
+      "tooManyInvitations": "Túl sok meghívó, lassítson",
+      "tooManyRequests": "Túl sok kérés",
+      "allFieldsRequired": "Minden mező kötelező",
+      "userWithEmailExists": "Ezzel az e-mail címmel már létezik felhasználó",
+      "userNotFound": "A felhasználó nem található",
+      "nameEmailPhoneRequired": "Név, e-mail és telefonszám kötelező",
+      "emailInUse": "Ezt az e-mail címet már más használja",
+      "phoneInUse": "Ezt a telefonszámot már más használja",
+      "cannotRemoveSelfAdmin": "Nem vonhatja vissza saját admin szerepét",
+      "missingUserId": "Hiányzó felhasználó azonosító",
+      "invalidCategory": "Érvénytelen kategória",
+      "invalidIssuedAtFormat": "Érvénytelen kiállítási dátum formátum",
+      "invalidExpiresAtFormat": "Érvénytelen érvényességi dátum formátum",
+      "startEndRequired": "A kezdő és befejező dátum kötelező",
+      "requiredFieldsMissing": "Hiányzó kötelező mezők",
+      "invalidWeekday": "Érvénytelen hét napja",
+      "invalidOrExpiredToken": "Érvénytelen vagy lejárt token",
+      "tokenAlreadyUsed": "Ezt a tokent már felhasználták",
+      "tokenExpired": "Ez a token lejárt",
+      "bookingNotFound": "A foglalás nem található",
+      "bookingAlready": "A foglalás már {status}",
+      "tooManyAttempts": "Túl sok próbálkozás",
+      "invalidMode": "Érvénytelen mód"
+    }
   },
   "openingHours": {
     "title": "Nyitvatartás",
@@ -117,7 +300,9 @@
     "add": "Hozzáadás",
     "delete": "Törlés",
     "saved": "Nyitvatartás mentve",
-    "days": ["Vasárnap", "Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat"]
+    "editTitle": "Nyitvatartás szerkesztése",
+    "days": ["Vasárnap", "Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat"],
+    "daysSuffix": "({count} nap)"
   },
   "closures": {
     "title": "Zárások",
@@ -129,7 +314,10 @@
     "reasonHu": "Ok (HU)",
     "add": "Zárás hozzáadása",
     "delete": "Törlés",
-    "saved": "Zárás létrehozva"
+    "saved": "Zárás létrehozva",
+    "editTitle": "Zárás szerkesztése",
+    "timeFromOptional": "Ettől (opcionális)",
+    "timeToOptional": "Eddig (opcionális)"
   },
   "booking": {
     "title": "Új foglalás",
@@ -173,6 +361,32 @@
     "prev": "Előző",
     "next": "Következő"
   },
+  "consent": {
+    "title": "Dokumentumok",
+    "publishDocument": "Dokumentum közzététele",
+    "startFromExisting": "Meglévő alapján (választható)",
+    "newDocumentOption": "— Új dokumentum üresen —",
+    "startFromHelp": "Előtölti a tartalmat és javasolja a következő verziót. Új verzió jön létre; a tagoknak a következő bejelentkezéskor újra el kell fogadniuk.",
+    "currentVersionPrefix": "jelenleg",
+    "type": "Típus",
+    "version": "Verzió",
+    "language": "Nyelv",
+    "languageSk": "Szlovák",
+    "languageHu": "Magyar",
+    "content": "Tartalom (Markdown)",
+    "publish": "Közzététel",
+    "published": "Közzétéve",
+    "success": "A dokumentum közzétéve",
+    "noDocuments": "Nincsenek dokumentumok",
+    "versionExists": "A(z) {version} verzió már létezik ehhez a dokumentumhoz és nyelvhez",
+    "allFieldsRequired": "Minden mező kötelező",
+    "unauthorized": "Jogosulatlan",
+    "kinds": {
+      "gdpr": "GDPR",
+      "range_rules": "Lőtéri szabályzat",
+      "terms": "Feltételek"
+    }
+  },
   "passwordReset": {
     "title": "Jelszó visszaállítása",
     "subtitle": "Adja meg e-mail címét a jelszó visszaállításához",
@@ -183,5 +397,199 @@
     "confirmPassword": "Új jelszó megerősítése",
     "reset": "Jelszó visszaállítása",
     "success": "A jelszó sikeresen visszaállítva"
+  },
+  "audit": {
+    "title": "Audit napló",
+    "allActions": "Minden művelet",
+    "allEntities": "Minden entitás",
+    "time": "Idő",
+    "actor": "Végrehajtó",
+    "action": "Művelet",
+    "entity": "Entitás",
+    "id": "ID",
+    "ip": "IP"
+  },
+  "membership": {
+    "title": "Tagság",
+    "year": "Év",
+    "paid": "Fizetve",
+    "unpaid": "Nem fizetve",
+    "cancelled": "Törölve",
+    "recordPayment": "Fizetés rögzítése",
+    "member": "Tag",
+    "choose": "Válasszon...",
+    "sum": "Összeg (EUR)",
+    "method": "Fizetési mód",
+    "note": "Megjegyzés",
+    "methodCash": "Készpénz",
+    "methodTransfer": "Átutalás",
+    "methodOther": "Egyéb",
+    "paymentRecorded": "Fizetés rögzítve",
+    "recordButton": "Rögzítés",
+    "columns": {
+      "member": "Tag",
+      "email": "E-mail",
+      "accountStatus": "Fiók állapota",
+      "sum": "Összeg",
+      "paid": "Fizetve",
+      "method": "Mód",
+      "note": "Megjegyzés"
+    },
+    "errors": {
+      "allFieldsRequired": "Minden mező kötelező",
+      "unauthorized": "Jogosulatlan"
+    }
+  },
+  "dangerZone": {
+    "title": "Danger Zone",
+    "unlockNote": "A megjelenítéshez jelszó szükséges. A feloldás 15 percig érvényes.",
+    "password": "Jelszó",
+    "unlock": "Feloldás",
+    "wrongPassword": "Hibás jelszó",
+    "unauthorized": "Jogosulatlan",
+    "notConfigured": "A DANGER_ZONE_PASSWORD nincs beállítva",
+    "warning": "Adatok végleges törlése a produkciós adatbázisból. Visszavonhatatlan. Csak a tesztidőszak végén használja.",
+    "admins": "Adminok",
+    "adminsHelp": "Ideiglenesen függessze fel az admint, ha tesztelnie kell, hogy az értesítések csak egy fiókra érkezzenek. A felfüggesztett admin nem tud bejelentkezni. Saját magát nem módosíthatja.",
+    "nonAdminUsers": "Felhasználók (nem admin)",
+    "usersHelp": "A hard delete törli a tag összes foglalását, értesítését, tagságát és tokenjét. Az audit napló megmarad, a hivatkozás NULL-ra állítódik.",
+    "bookingsSectionLabel": "Foglalások",
+    "bookingsCount": "{count} (max 100 jelenik meg)",
+    "bookingsHelp": "A hard delete törli a foglalást és annak értesítési rekordjait. A jóváhagyó tokenek kaszkádosan törlődnek.",
+    "noAdmins": "Nincsenek adminok.",
+    "noNonAdminUsers": "Nincsenek nem admin felhasználók.",
+    "noBookings": "Nincsenek foglalások.",
+    "you": "ÖN",
+    "activate": "Aktiválás",
+    "suspend": "Felfüggesztés",
+    "hardDelete": "Hard delete",
+    "confirm": "Megerősítés",
+    "confirmDelete": "Törlés megerősítése",
+    "delete": "Törlés",
+    "unlocked": "{total} rekord összesen · Feloldva 15 percig",
+    "lock": "Zárolás",
+    "tableCol": "Tábla",
+    "countCol": "Darabszám",
+    "rows": {
+      "bookings": "Foglalások",
+      "notifications_log": "Értesítési naplók",
+      "audit_log": "Audit napló",
+      "audit_log_note": "Minden művelet után újra létrejön",
+      "bot_log": "Bot napló",
+      "contact_messages": "Kapcsolat üzenetek",
+      "admin_approval_tokens": "Jóváhagyó tokenek",
+      "verification_codes": "OTP kódok",
+      "memberships": "Tagságok",
+      "closures": "Zárások",
+      "opening_hours_templates": "Nyitvatartás"
+    },
+    "pgbossLabel": "pg-boss jobs & schedules",
+    "pgbossNote": "Törli az összes ütemezett és futó jobot",
+    "nukeTitle": "Minden törlése",
+    "nukeDescription": "Kiüríti a fenti összes táblát + törli a(z) {count} nem admin felhasználót. Az adminok és a forrásadatok (lőterek, GDPR dokumentumok) megmaradnak.",
+    "nukeConfirm": "Minden törlésének megerősítése",
+    "errors": {
+      "cannotChangeSelf": "Saját állapotát nem módosíthatja",
+      "adminNotFound": "Admin nem található",
+      "targetNotAdmin": "A célpont nem admin",
+      "cannotDeleteSelf": "Nem törölheti saját magát",
+      "tableNotAllowed": "Ez a tábla nem törölhető",
+      "locked": "A danger zone zárolva"
+    }
+  },
+  "contactLog": {
+    "title": "Kapcsolatfelvételi üzenetek ({count})",
+    "searchPlaceholder": "Keresés név, e-mail, IP alapján...",
+    "columns": {
+      "sender": "Feladó",
+      "ip": "IP",
+      "fillTime": "Kitöltési idő",
+      "status": "Állapot",
+      "date": "Dátum"
+    },
+    "statusSent": "Elküldve",
+    "statusRecorded": "Rögzítve",
+    "noMessages": "Nincsenek üzenetek",
+    "detail": {
+      "name": "Név",
+      "email": "E-mail",
+      "phone": "Telefonszám",
+      "message": "Üzenet",
+      "ip": "IP",
+      "userAgent": "User Agent",
+      "acceptLanguage": "Accept-Language",
+      "referer": "Referer",
+      "screen": "Képernyő",
+      "platform": "Platform",
+      "language": "Nyelv",
+      "time": "Idő"
+    },
+    "ban": {
+      "sectionTitle": "Biztonság",
+      "emailBanned": "E-mail tiltva",
+      "ipBanned": "IP tiltva",
+      "banEmail": "E-mail tiltása",
+      "banIp": "IP tiltása",
+      "unbanEmail": "E-mail tiltásának feloldása",
+      "unbanIp": "IP tiltásának feloldása",
+      "reasonPrompt": "Ok (választható):",
+      "confirmBanEmail": "Biztosan tiltja ezt az e-mailt? A további üzenetek innen figyelmen kívül lesznek hagyva.",
+      "confirmBanIp": "Biztosan tiltja ezt az IP-t? A további üzenetek innen figyelmen kívül lesznek hagyva.",
+      "confirmUnban": "Biztosan feloldja a tiltást?",
+      "alreadyBanned": "Már tiltva van",
+      "unauthorized": "Jogosulatlan",
+      "invalidValue": "Érvénytelen érték",
+      "bannedPill": "Tiltva",
+      "reasonLabel": "Ok"
+    }
+  },
+  "settings": {
+    "title": "Beállítások",
+    "smsTitle": "SMS értesítések",
+    "smsDescription": "Meghatározza, hogy kinek küldünk SMS-t a foglalási eseményeknél. A változtatás azonnal érvénybe lép a következő értesítésnél. Az e-mailek ettől a beállítástól függetlenül mindig kiküldésre kerülnek.",
+    "smsMode": {
+      "allTitle": "Mindenkinek",
+      "allDesc": "Az SMS-ek az adminoknak és a tagoknak is elküldésre kerülnek minden eseménynél (a szokásos e-mailen felül).",
+      "adminOnlyTitle": "Csak adminoknak",
+      "adminOnlyDesc": "SMS-t csak az adminok kapnak (pl. új kérelem). A tagok csak e-mailt kapnak.",
+      "membersOnlyTitle": "Csak tagoknak",
+      "membersOnlyDesc": "SMS-t csak a tagok kapnak (jóváhagyás, emlékeztető, törlés...). Az adminok nem.",
+      "offTitle": "Kikapcsolva",
+      "offDesc": "Nincs lifecycle SMS. Az OTP regisztráció továbbra is aktív."
+    }
+  },
+  "rateLimits": {
+    "title": "Rate Limits",
+    "description": "Aktív rate-limit rekordok (in-memory). Törléssel feloldható az IP.",
+    "clearAll": "Összes törlése",
+    "loading": "Betöltés...",
+    "empty": "Nincsenek aktív rate-limit rekordok.",
+    "columns": {
+      "type": "Típus",
+      "ipOrId": "IP / ID",
+      "requests": "Kérelmek",
+      "first": "Első",
+      "last": "Utolsó"
+    },
+    "unblock": "Feloldás",
+    "ago": "ezelőtt"
+  },
+  "adminNav": {
+    "groups": {
+      "members": "Tagok",
+      "range": "Lőtér",
+      "statistics": "Statisztikák",
+      "system": "Rendszer",
+      "dangerZone": "Danger Zone",
+      "external": "Külső"
+    },
+    "links": {
+      "contactLog": "Kapcsolat napló",
+      "consent": "Dokumentumok",
+      "rateLimits": "Rate Limits",
+      "settings": "Beállítások",
+      "dangerZone": "Danger Zone",
+      "analytics": "Analytics"
+    }
   }
 }

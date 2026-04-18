@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,8 @@ export function LicenseForm({
   expiresAt,
   authority,
 }: LicenseFormProps) {
+  const t = useTranslations("admin.license");
+  const tCommon = useTranslations("common");
   const [state, formAction, isPending] = useActionState<LicenseResult | null, FormData>(
     updateUserLicense,
     null,
@@ -35,7 +38,7 @@ export function LicenseForm({
     <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
       <div className="mb-4 flex items-center gap-2">
         <Shield size={18} className="text-amber-500" />
-        <h2 className="text-lg font-semibold text-zinc-100">Zbrojny preukaz</h2>
+        <h2 className="text-lg font-semibold text-zinc-100">{t("title")}</h2>
       </div>
 
       <form action={formAction} className="space-y-4">
@@ -44,20 +47,20 @@ export function LicenseForm({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="zp-number" className="text-zinc-400">
-              Cislo preukazu
+              {t("number")}
             </Label>
             <Input
               id="zp-number"
               name="number"
               defaultValue={number ?? ""}
-              placeholder="napr. AA-000123"
+              placeholder={t("numberPlaceholder")}
               className="border-zinc-700 bg-zinc-800/50 text-zinc-100 placeholder:text-zinc-600"
             />
           </div>
 
           <div className="space-y-1.5">
             <Label htmlFor="zp-category" className="text-zinc-400">
-              Kategoria
+              {t("category")}
             </Label>
             <select
               id="zp-category"
@@ -65,7 +68,7 @@ export function LicenseForm({
               defaultValue={category ?? ""}
               className="h-8 w-full rounded-lg border border-zinc-700 bg-zinc-800/50 px-2.5 text-sm text-zinc-100 outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             >
-              <option value="">-- Vyberte --</option>
+              <option value="">{t("chooseOption")}</option>
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>
                   {c}
@@ -76,7 +79,7 @@ export function LicenseForm({
 
           <div className="space-y-1.5">
             <Label htmlFor="zp-issuedAt" className="text-zinc-400">
-              Vydany dna
+              {t("issuedAt")}
             </Label>
             <Input
               id="zp-issuedAt"
@@ -89,7 +92,7 @@ export function LicenseForm({
 
           <div className="space-y-1.5">
             <Label htmlFor="zp-expiresAt" className="text-zinc-400">
-              Platnost do
+              {t("expiresAt")}
             </Label>
             <Input
               id="zp-expiresAt"
@@ -102,13 +105,13 @@ export function LicenseForm({
 
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="zp-authority" className="text-zinc-400">
-              Vydavajuci organ
+              {t("authority")}
             </Label>
             <Input
               id="zp-authority"
               name="authority"
               defaultValue={authority ?? ""}
-              placeholder="napr. Okresne riaditelstvo PZ Bratislava"
+              placeholder={t("authorityPlaceholder")}
               className="border-zinc-700 bg-zinc-800/50 text-zinc-100 placeholder:text-zinc-600"
             />
           </div>
@@ -118,7 +121,7 @@ export function LicenseForm({
           <p className="text-sm text-red-400">{state.error}</p>
         )}
         {state?.success && (
-          <p className="text-sm text-emerald-400">Ulozene</p>
+          <p className="text-sm text-emerald-400">{tCommon("saved")}</p>
         )}
 
         <div className="flex justify-end">
@@ -128,7 +131,7 @@ export function LicenseForm({
             disabled={isPending}
             className="bg-amber-600 text-white hover:bg-amber-700"
           >
-            {isPending ? "Ukladam..." : "Ulozit"}
+            {isPending ? tCommon("saving") : tCommon("save")}
           </Button>
         </div>
       </form>

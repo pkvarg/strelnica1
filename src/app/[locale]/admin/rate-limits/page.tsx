@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -32,6 +33,7 @@ function timeAgo(ts: number) {
 }
 
 export default function RateLimitsPage() {
+  const t = useTranslations("rateLimits");
   const [entries, setEntries] = useState<RateLimitEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -70,10 +72,10 @@ export default function RateLimitsPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="font-[family-name:var(--font-bebas)] text-3xl tracking-wide">
-            Rate Limits
+            {t("title")}
           </h1>
           <p className="text-sm text-zinc-400">
-            Aktívne rate-limit záznamy (in-memory). Vymazanie odblokuje IP.
+            {t("description")}
           </p>
         </div>
         {entries.length > 0 && (
@@ -82,26 +84,26 @@ export default function RateLimitsPage() {
             size="sm"
             onClick={handleClearAll}
           >
-            Vymazať všetky
+            {t("clearAll")}
           </Button>
         )}
       </div>
 
       {loading ? (
-        <p className="text-sm text-zinc-500">Načítavam...</p>
+        <p className="text-sm text-zinc-500">{t("loading")}</p>
       ) : entries.length === 0 ? (
         <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-8 text-center">
-          <p className="text-zinc-500">Žiadne aktívne rate-limit záznamy.</p>
+          <p className="text-zinc-500">{t("empty")}</p>
         </div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Typ</TableHead>
-              <TableHead>IP / ID</TableHead>
-              <TableHead className="text-right">Požiadavky</TableHead>
-              <TableHead>Prvá</TableHead>
-              <TableHead>Posledná</TableHead>
+              <TableHead>{t("columns.type")}</TableHead>
+              <TableHead>{t("columns.ipOrId")}</TableHead>
+              <TableHead className="text-right">{t("columns.requests")}</TableHead>
+              <TableHead>{t("columns.first")}</TableHead>
+              <TableHead>{t("columns.last")}</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -123,8 +125,8 @@ export default function RateLimitsPage() {
                   </TableCell>
                   <TableCell className="font-mono text-xs">{value}</TableCell>
                   <TableCell className="text-right font-mono">{entry.hits}</TableCell>
-                  <TableCell className="text-xs text-zinc-500">{timeAgo(entry.oldestAt)} ago</TableCell>
-                  <TableCell className="text-xs text-zinc-500">{timeAgo(entry.newestAt)} ago</TableCell>
+                  <TableCell className="text-xs text-zinc-500">{timeAgo(entry.oldestAt)} {t("ago")}</TableCell>
+                  <TableCell className="text-xs text-zinc-500">{timeAgo(entry.newestAt)} {t("ago")}</TableCell>
                   <TableCell>
                     <Button
                       variant="ghost"
@@ -132,7 +134,7 @@ export default function RateLimitsPage() {
                       className="text-xs text-zinc-400 hover:text-red-400"
                       onClick={() => handleClear(entry.key)}
                     >
-                      Odblokovať
+                      {t("unblock")}
                     </Button>
                   </TableCell>
                 </TableRow>

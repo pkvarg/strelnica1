@@ -1,12 +1,13 @@
 "use server";
 
 import { db } from "@/db";
-import { contactMessages } from "@/db/schema";
+import { contactBans, contactMessages } from "@/db/schema";
 import { notifyContact } from "@/lib/notify";
 import { rateLimit } from "@/lib/rate-limit";
 import { incrementEmails } from "@/lib/visitors";
 import { getClientIp } from "@/lib/ip";
 import { headers } from "next/headers";
+import { and, eq, or } from "drizzle-orm";
 
 export async function submitContact(
   _prev: { error?: string; success?: boolean } | null,
@@ -42,6 +43,19 @@ export async function submitContact(
 
   const { allowed } = rateLimit(`contact:${ip ?? "unknown"}`, 3, 15 * 60 * 1000);
   if (!allowed) {
+    return { success: true };
+  }
+
+  const banCandidates = [
+    and(eq(contactBans.kind, "email" as const), eq(contactBans.value, email)),
+    ...(ip ? [and(eq(contactBans.kind, "ip" as const), eq(contactBans.value, ip))] : []),
+  ];
+  const bans = await db
+    .select({ id: contactBans.id })
+    .from(contactBans)
+    .where(or(...banCandidates))
+    .limit(1);
+  if (bans.length > 0) {
     return { success: true };
   }
 

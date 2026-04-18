@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AdminNav } from "./nav";
+import { enforceConsentUpToDate } from "@/lib/consent";
 
 export default async function AdminLayout({
   children,
@@ -18,6 +19,8 @@ export default async function AdminLayout({
   if (session.user.role !== "admin") {
     redirect(`/${locale}/app`);
   }
+
+  await enforceConsentUpToDate(session.user.id, locale);
 
   const t = await getTranslations("common");
 

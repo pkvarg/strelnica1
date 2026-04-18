@@ -10,6 +10,7 @@ export default async function AdminStatsPage({
 }) {
   const params = await searchParams;
   const t = await getTranslations("common");
+  const tAdmin = await getTranslations("admin");
   const year = params.year ? parseInt(params.year, 10) : new Date().getFullYear();
   const yearStart = new Date(year, 0, 1);
   const yearEnd = new Date(year + 1, 0, 1);
@@ -75,14 +76,14 @@ export default async function AdminStatsPage({
               ))}
             </select>
             <button type="submit" className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm text-white">
-              Zobraziť
+              {t("show")}
             </button>
           </form>
           <a
             href={`/api/admin/stats/pdf?year=${year}`}
             className="inline-flex h-8 items-center rounded-lg border px-3 text-sm font-medium hover:bg-zinc-50"
           >
-            Export PDF
+            {tAdmin("stats.exportPdf")}
           </a>
         </div>
       </div>
@@ -90,30 +91,30 @@ export default async function AdminStatsPage({
       <div className="mt-6 grid grid-cols-2 gap-4">
         <div className="rounded-lg border p-4 text-center">
           <p className="text-3xl font-bold">{totalVisits}</p>
-          <p className="text-sm text-zinc-500">Celkové návštevy</p>
+          <p className="text-sm text-zinc-500">{tAdmin("stats.totalVisits")}</p>
         </div>
         <div className="rounded-lg border p-4 text-center">
           <p className="text-3xl font-bold">{totalHours}h</p>
-          <p className="text-sm text-zinc-500">Celkové hodiny</p>
+          <p className="text-sm text-zinc-500">{tAdmin("stats.totalHours")}</p>
         </div>
       </div>
 
-      <h2 className="mt-8 text-lg font-semibold">Podľa členov</h2>
+      <h2 className="mt-8 text-lg font-semibold">{tAdmin("stats.byMembers")}</h2>
       <div className="mt-2 space-y-1">
         {sortedUsers.map((u) => (
           <div key={u.id} className="flex justify-between rounded border px-3 py-2 text-sm">
             <span className="font-medium">{u.name}</span>
-            <span>{u.visits} návštev, {Math.round(u.minutes / 60 * 10) / 10}h</span>
+            <span>{tAdmin("stats.visitsAndHours", { visits: u.visits, hours: Math.round(u.minutes / 60 * 10) / 10 })}</span>
           </div>
         ))}
       </div>
 
-      <h2 className="mt-8 text-lg font-semibold">Podľa mesiacov</h2>
+      <h2 className="mt-8 text-lg font-semibold">{tAdmin("stats.byMonths")}</h2>
       <div className="mt-2 space-y-1">
         {sortedMonths.map(([month, data]) => (
           <div key={month} className="flex justify-between rounded border px-3 py-2 text-sm">
             <span className="font-medium">{month}</span>
-            <span>{data.visits} návštev, {Math.round(data.minutes / 60 * 10) / 10}h</span>
+            <span>{tAdmin("stats.visitsAndHours", { visits: data.visits, hours: Math.round(data.minutes / 60 * 10) / 10 })}</span>
           </div>
         ))}
       </div>

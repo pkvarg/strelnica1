@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { fmtDate, fmtTime } from "@/lib/format";
 import {
   Table,
@@ -46,6 +47,8 @@ export function AdminBookingsTable({
   bookings: Booking[];
   ranges: Range[];
 }) {
+  const t = useTranslations("booking");
+  const tAdmin = useTranslations("admin");
   const rangeMap = Object.fromEntries(ranges.map((r) => [r.id, r.nameSk]));
 
   if (bookings.length === 0) {
@@ -56,13 +59,13 @@ export function AdminBookingsTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Člen</TableHead>
-          <TableHead>Strelnica</TableHead>
-          <TableHead>Dátum</TableHead>
-          <TableHead>Čas</TableHead>
-          <TableHead>Hostia</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Poznámka</TableHead>
+          <TableHead>{tAdmin("columns.member")}</TableHead>
+          <TableHead>{tAdmin("columns.range")}</TableHead>
+          <TableHead>{tAdmin("columns.date")}</TableHead>
+          <TableHead>{tAdmin("columns.time")}</TableHead>
+          <TableHead>{tAdmin("columns.guests")}</TableHead>
+          <TableHead>{tAdmin("columns.status")}</TableHead>
+          <TableHead>{tAdmin("columns.note")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -83,7 +86,7 @@ export function AdminBookingsTable({
             <TableCell>{b.guestCount}</TableCell>
             <TableCell>
               <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[b.status] ?? ""}`}>
-                {b.status}
+                {t(`status.${b.status}` as "status.requested")}
               </span>
             </TableCell>
             <TableCell className="max-w-[200px] truncate text-xs">

@@ -7,6 +7,7 @@ import { getTranslations } from "next-intl/server";
 export default async function MemberStatsPage() {
   const session = await auth();
   const t = await getTranslations("common");
+  const tStats = await getTranslations("profile.stats");
 
   const userId = session!.user.id;
 
@@ -55,11 +56,11 @@ export default async function MemberStatsPage() {
       <div className="mt-6 grid grid-cols-3 gap-4">
         <div className="rounded-lg border p-4 text-center">
           <p className="text-3xl font-bold">{totalVisits}</p>
-          <p className="text-sm text-zinc-500">Návštevy</p>
+          <p className="text-sm text-zinc-500">{tStats("visits")}</p>
         </div>
         <div className="rounded-lg border p-4 text-center">
           <p className="text-3xl font-bold">{totalHours}h</p>
-          <p className="text-sm text-zinc-500">Strelecké hodiny</p>
+          <p className="text-sm text-zinc-500">{tStats("shootingHours")}</p>
         </div>
         <div className="rounded-lg border p-4 text-center">
           {Object.entries(byRange).map(([range, count]) => (
@@ -67,22 +68,22 @@ export default async function MemberStatsPage() {
               <span className="font-medium">{range}</span>: {count}x
             </p>
           ))}
-          <p className="mt-1 text-sm text-zinc-500">Podľa strelnice</p>
+          <p className="mt-1 text-sm text-zinc-500">{tStats("byRange")}</p>
         </div>
       </div>
 
-      <h2 className="mt-8 text-lg font-semibold">Podľa mesiacov</h2>
+      <h2 className="mt-8 text-lg font-semibold">{tStats("byMonth")}</h2>
       <div className="mt-2 space-y-1">
         {sortedMonths.map(([month, data]) => (
           <div key={month} className="flex justify-between rounded border px-3 py-2 text-sm">
             <span className="font-medium">{month}</span>
             <span>
-              {data.visits} návštev, {Math.round(data.minutes / 60 * 10) / 10}h
+              {tStats("visitsAndHours", { visits: data.visits, hours: Math.round(data.minutes / 60 * 10) / 10 })}
             </span>
           </div>
         ))}
         {sortedMonths.length === 0 && (
-          <p className="text-sm text-zinc-500">Zatiaľ žiadne dokončené rezervácie</p>
+          <p className="text-sm text-zinc-500">{tStats("noCompleted")}</p>
         )}
       </div>
     </div>

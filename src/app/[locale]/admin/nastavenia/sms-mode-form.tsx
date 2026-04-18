@@ -1,31 +1,16 @@
 "use client";
 
 import { useActionState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { updateSmsMode } from "./actions";
 import type { SmsMode } from "@/lib/settings";
 
-const OPTIONS: { value: SmsMode; title: string; desc: string }[] = [
-  {
-    value: "all",
-    title: "Všetkým",
-    desc: "SMS sa posielajú adminom aj členom pri každej udalosti (okrem bežnej e-mailovej).",
-  },
-  {
-    value: "admin_only",
-    title: "Len adminom",
-    desc: "SMS dostávajú len adminovia (napr. nová žiadosť). Členovia dostanú iba e-mail.",
-  },
-  {
-    value: "members_only",
-    title: "Len členom",
-    desc: "SMS dostávajú iba členovia (schválenie, pripomienka, zrušenie...). Adminovia nie.",
-  },
-  {
-    value: "off",
-    title: "Vypnuté",
-    desc: "Žiadne lifecycle SMS. OTP pri registrácii zostáva aktívne.",
-  },
+const OPTIONS: { value: SmsMode; titleKey: string; descKey: string }[] = [
+  { value: "all", titleKey: "allTitle", descKey: "allDesc" },
+  { value: "admin_only", titleKey: "adminOnlyTitle", descKey: "adminOnlyDesc" },
+  { value: "members_only", titleKey: "membersOnlyTitle", descKey: "membersOnlyDesc" },
+  { value: "off", titleKey: "offTitle", descKey: "offDesc" },
 ];
 
 interface Props {
@@ -33,6 +18,8 @@ interface Props {
 }
 
 export function SmsModeForm({ current }: Props) {
+  const t = useTranslations("settings.smsMode");
+  const tCommon = useTranslations("common");
   const [state, formAction, isPending] = useActionState(updateSmsMode, null);
 
   return (
@@ -51,15 +38,15 @@ export function SmsModeForm({ current }: Props) {
               className="mt-1 h-4 w-4 accent-amber-600"
             />
             <div>
-              <p className="font-medium text-zinc-100">{opt.title}</p>
-              <p className="mt-1 text-sm text-zinc-400">{opt.desc}</p>
+              <p className="font-medium text-zinc-100">{t(opt.titleKey as "allTitle")}</p>
+              <p className="mt-1 text-sm text-zinc-400">{t(opt.descKey as "allDesc")}</p>
             </div>
           </label>
         ))}
       </div>
 
       {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
-      {state?.success && <p className="text-sm text-emerald-400">Uložené</p>}
+      {state?.success && <p className="text-sm text-emerald-400">{tCommon("saved")}</p>}
 
       <Button
         type="submit"
@@ -67,7 +54,7 @@ export function SmsModeForm({ current }: Props) {
         disabled={isPending}
         className="bg-amber-600 text-white hover:bg-amber-700"
       >
-        {isPending ? "Ukladám..." : "Uložiť"}
+        {isPending ? tCommon("saving") : tCommon("save")}
       </Button>
     </form>
   );

@@ -8,6 +8,8 @@ import { users } from "@/db/schema";
 import { eq, or } from "drizzle-orm";
 import { rateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/ip";
+import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 
 export async function loginAction(
   _prev: { error?: string } | null,
@@ -26,6 +28,8 @@ export async function loginAction(
     return { error: "invalidCredentials" };
   }
 
+  let destination: string | null = null;
+
   try {
     await signIn("credentials", {
       login,
@@ -34,7 +38,7 @@ export async function loginAction(
     });
 
     const [user] = await db
-      .select({ id: users.id })
+      .select({ id: users.id, role: users.role })
       .from(users)
       .where(or(eq(users.email, login), eq(users.phoneE164, login)))
       .limit(1);
@@ -51,13 +55,17 @@ export async function loginAction(
         entityType: "user",
         entityId: user.id,
       });
-    }
 
-    return null;
+      const locale = await getLocale();
+      destination = user.role === "admin" ? `/${locale}/admin` : `/${locale}/app`;
+    }
   } catch (error) {
     if (error instanceof AuthError) {
       return { error: "invalidCredentials" };
     }
     throw error;
   }
+
+  if (destination) redirect(destination);
+  return { error: "invalidCredentials" };
 }

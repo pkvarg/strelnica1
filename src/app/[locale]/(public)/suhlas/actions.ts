@@ -6,6 +6,8 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getLatestConsentVersion } from "@/lib/consent";
 import { writeAudit } from "@/lib/audit";
+import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 
 export async function acceptConsents() {
   const session = await auth();
@@ -33,4 +35,7 @@ export async function acceptConsents() {
     entityId: session.user.id,
     after: { gdprVersion, rulesVersion },
   });
+
+  const locale = await getLocale();
+  redirect(session.user.role === "admin" ? `/${locale}/admin` : `/${locale}/app`);
 }

@@ -40,12 +40,12 @@ export function AddClosureForm({ ranges }: { ranges: Range[] }) {
         </div>
 
         <div className="space-y-1">
-          <Label>Od (voliteľné)</Label>
+          <Label>{t("timeFromOptional")}</Label>
           <Input name="startTime" type="time" placeholder="00:00" />
         </div>
 
         <div className="space-y-1">
-          <Label>Do (voliteľné)</Label>
+          <Label>{t("timeToOptional")}</Label>
           <Input name="endTime" type="time" placeholder="23:59" />
         </div>
 

@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import {
   bookings,
@@ -78,6 +78,7 @@ async function getCounts() {
 export default async function DangerZonePage() {
   const session = await auth();
   const locale = await getLocale();
+  const t = await getTranslations("dangerZone");
 
   if (!session?.user) redirect(`/${locale}/prihlasenie`);
   if (session.user.role !== "admin") redirect(`/${locale}/app`);
@@ -88,10 +89,10 @@ export default async function DangerZonePage() {
     return (
       <div className="max-w-md">
         <h1 className="font-[family-name:var(--font-bebas)] text-3xl tracking-wide text-red-500">
-          Danger Zone
+          {t("title")}
         </h1>
         <p className="mt-2 text-sm text-zinc-400">
-          Na zobrazenie je potrebné heslo. Odomknutie platí 15 minút.
+          {t("unlockNote")}
         </p>
         <UnlockForm />
       </div>
@@ -155,10 +156,10 @@ export default async function DangerZonePage() {
     <div className="space-y-10">
       <div>
         <h1 className="font-[family-name:var(--font-bebas)] text-3xl tracking-wide text-red-500">
-          Danger Zone
+          {t("title")}
         </h1>
         <p className="mt-1 text-sm text-zinc-400">
-          Trvalé vymazanie dát z produkčnej DB. Nereverzibilné. Používať iba na konci testovacieho obdobia.
+          {t("warning")}
         </p>
       </div>
 
@@ -166,11 +167,11 @@ export default async function DangerZonePage() {
 
       <section>
         <h2 className="mb-3 font-semibold text-zinc-200">
-          Admini{" "}
+          {t("admins")}{" "}
           <span className="text-zinc-500">· {adminRows.length}</span>
         </h2>
         <p className="mb-3 text-xs text-zinc-500">
-          Dočasne suspenduj admina, ak potrebuješ testovať, aby notifikácie chodili len na jeden účet. Suspendovaný admin sa nevie prihlásiť. Seba zmeniť nemôžeš.
+          {t("adminsHelp")}
         </p>
         <AdminsRowsTable
           admins={adminRows.map((a) => ({
@@ -182,22 +183,22 @@ export default async function DangerZonePage() {
 
       <section>
         <h2 className="mb-3 font-semibold text-zinc-200">
-          Používatelia (neadmin){" "}
+          {t("nonAdminUsers")}{" "}
           <span className="text-zinc-500">· {counts.nonAdminUsers}</span>
         </h2>
         <p className="mb-3 text-xs text-zinc-500">
-          Hard delete zmaže aj všetky rezervácie, notifikácie, členstvá a tokeny daného člena. Audit log zostane, referencia sa nastaví na NULL.
+          {t("usersHelp")}
         </p>
         <UsersRowsTable users={userRows} />
       </section>
 
       <section>
         <h2 className="mb-3 font-semibold text-zinc-200">
-          Rezervácie{" "}
-          <span className="text-zinc-500">· {counts.bookings} (zobrazených max 100)</span>
+          {t("bookingsSectionLabel")}{" "}
+          <span className="text-zinc-500">· {t("bookingsCount", { count: counts.bookings })}</span>
         </h2>
         <p className="mb-3 text-xs text-zinc-500">
-          Hard delete zmaže rezerváciu a jej notifikačné záznamy. Schvaľovacie tokeny sa kaskádovo odstránia.
+          {t("bookingsHelp")}
         </p>
         <BookingsRowsTable bookings={bookingsForTable} />
       </section>

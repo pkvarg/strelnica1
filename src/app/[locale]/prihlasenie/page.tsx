@@ -2,8 +2,6 @@
 
 import { useTranslations, useLocale } from "next-intl";
 import { useActionState } from "react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import Link from "next/link";
 import { loginAction } from "./actions";
 import { Button } from "@/components/ui/button";
@@ -13,15 +11,7 @@ import { Label } from "@/components/ui/label";
 export default function LoginPage() {
   const t = useTranslations("auth");
   const locale = useLocale();
-  const router = useRouter();
   const [state, formAction, isPending] = useActionState(loginAction, null);
-
-  useEffect(() => {
-    if (state === null && !isPending) return;
-    if (state === null) {
-      router.push("/app");
-    }
-  }, [state, isPending, router]);
 
   return (
     <div className="flex flex-1 items-center justify-center">

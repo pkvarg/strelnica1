@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { auditLog, users } from "@/db/schema";
 import { eq, and, gte, lte, desc } from "drizzle-orm";
+import { getLocale, getTranslations } from "next-intl/server";
 import {
   Table,
   TableBody,
@@ -21,6 +22,10 @@ export default async function AuditLogPage({
   }>;
 }) {
   const params = await searchParams;
+  const t = await getTranslations("audit");
+  const tCommon = await getTranslations("common");
+  const locale = await getLocale();
+  const localeTag = locale === "hu" ? "hu-HU" : "sk-SK";
 
   const conditions = [];
   if (params.action) conditions.push(eq(auditLog.action, params.action));
@@ -56,18 +61,18 @@ export default async function AuditLogPage({
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">Audit log</h1>
+      <h1 className="text-2xl font-bold">{t("title")}</h1>
 
       <form className="mt-4 flex flex-wrap gap-3">
         <select name="action" className="rounded-md border px-3 py-1.5 text-sm" defaultValue={params.action ?? ""}>
-          <option value="">Všetky akcie</option>
+          <option value="">{t("allActions")}</option>
           {actions.map((a) => (
             <option key={a} value={a}>{a}</option>
           ))}
         </select>
 
         <select name="entityType" className="rounded-md border px-3 py-1.5 text-sm" defaultValue={params.entityType ?? ""}>
-          <option value="">Všetky entity</option>
+          <option value="">{t("allEntities")}</option>
           {entityTypes.map((e) => (
             <option key={e} value={e}>{e}</option>
           ))}
@@ -77,7 +82,7 @@ export default async function AuditLogPage({
         <input name="to" type="date" className="rounded-md border px-3 py-1.5 text-sm" defaultValue={params.to ?? ""} />
 
         <button type="submit" className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm text-white">
-          Filtrovať
+          {tCommon("filter")}
         </button>
       </form>
 
@@ -85,19 +90,19 @@ export default async function AuditLogPage({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Čas</TableHead>
-              <TableHead>Aktér</TableHead>
-              <TableHead>Akcia</TableHead>
-              <TableHead>Entita</TableHead>
-              <TableHead>ID</TableHead>
-              <TableHead>IP</TableHead>
+              <TableHead>{t("time")}</TableHead>
+              <TableHead>{t("actor")}</TableHead>
+              <TableHead>{t("action")}</TableHead>
+              <TableHead>{t("entity")}</TableHead>
+              <TableHead>{t("id")}</TableHead>
+              <TableHead>{t("ip")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {entries.map((e) => (
               <TableRow key={e.id}>
                 <TableCell className="whitespace-nowrap text-xs">
-                  {e.createdAt.toLocaleString("sk-SK")}
+                  {e.createdAt.toLocaleString(localeTag)}
                 </TableCell>
                 <TableCell className="text-xs">
                   {e.actorFirstName ? `${e.actorFirstName} ${e.actorLastName}` : "-"}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -22,6 +23,8 @@ interface AdminRow {
 }
 
 export function AdminsRowsTable({ admins }: { admins: AdminRow[] }) {
+  const t = useTranslations("dangerZone");
+  const tAdmin = useTranslations("admin");
   const [isPending, startTransition] = useTransition();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +47,7 @@ export function AdminsRowsTable({ admins }: { admins: AdminRow[] }) {
   if (admins.length === 0) {
     return (
       <p className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 text-sm text-zinc-500">
-        Žiadni admini.
+        {t("noAdmins")}
       </p>
     );
   }
@@ -59,9 +62,9 @@ export function AdminsRowsTable({ admins }: { admins: AdminRow[] }) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Meno</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>{tAdmin("columns.name")}</TableHead>
+            <TableHead>{tAdmin("columns.email")}</TableHead>
+            <TableHead>{tAdmin("columns.status")}</TableHead>
             <TableHead className="w-44" />
           </TableRow>
         </TableHeader>
@@ -75,7 +78,7 @@ export function AdminsRowsTable({ admins }: { admins: AdminRow[] }) {
                   {a.firstName} {a.lastName}
                   {a.isSelf && (
                     <span className="ml-2 rounded bg-amber-900/40 px-1.5 py-0.5 text-[10px] font-medium text-amber-400">
-                      VY
+                      {t("you")}
                     </span>
                   )}
                 </TableCell>
@@ -88,7 +91,7 @@ export function AdminsRowsTable({ admins }: { admins: AdminRow[] }) {
                         : "bg-emerald-900/40 text-emerald-300"
                     }`}
                   >
-                    {a.status}
+                    {tAdmin(`userStatus.${a.status}` as "userStatus.active")}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -109,8 +112,8 @@ export function AdminsRowsTable({ admins }: { admins: AdminRow[] }) {
                       {busy
                         ? "..."
                         : suspended
-                          ? "Aktivovať"
-                          : "Suspendovať"}
+                          ? t("activate")
+                          : t("suspend")}
                     </Button>
                   )}
                 </TableCell>

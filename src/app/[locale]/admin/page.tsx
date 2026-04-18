@@ -1,13 +1,24 @@
 import { db } from "@/db";
 import { bookings, users } from "@/db/schema";
 import { eq, asc, and, gte, lte } from "drizzle-orm";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { PendingQueue } from "./pending-queue";
 import { TodaySchedule } from "./today-schedule";
 import { VisitorStats } from "./visitor-stats";
+import { BookingsOverview, type OverviewScope } from "./bookings-overview";
 
-export default async function AdminDashboard() {
+export default async function AdminDashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ overviewPage?: string; overviewScope?: string }>;
+}) {
   const t = await getTranslations();
+  const locale = await getLocale();
+  const params = await searchParams;
+
+  const overviewScope: OverviewScope =
+    params.overviewScope === "past" ? "past" : "upcoming";
+  const overviewPage = Math.max(1, parseInt(params.overviewPage ?? "1", 10) || 1);
 
   const pending = await db
     .select({
@@ -73,6 +84,8 @@ export default async function AdminDashboard() {
           <TodaySchedule bookings={todayBookings} />
         </div>
       </div>
+
+      <BookingsOverview page={overviewPage} scope={overviewScope} locale={locale} />
     </div>
   );
 }

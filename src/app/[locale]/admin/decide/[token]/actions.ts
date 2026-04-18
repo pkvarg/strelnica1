@@ -14,6 +14,7 @@ import { scheduleBookingReminder } from "@/lib/jobs/booking-reminder";
 import { scheduleNoShowSweep } from "@/lib/jobs/booking-noshow";
 import { scheduleAutoComplete } from "@/lib/jobs/booking-autocomplete";
 import { rateLimit } from "@/lib/rate-limit";
+import { getTranslations } from "next-intl/server";
 
 interface DecideResult {
   error?: string;
@@ -26,9 +27,11 @@ export async function executeDecision(
   _prev: DecideResult | null,
   formData: FormData,
 ): Promise<DecideResult> {
+  const tErr = await getTranslations("admin.errors");
+  const tBooking = await getTranslations("booking.status");
   const ip = (await getClientIp()) ?? "unknown";
   const { allowed } = rateLimit(`decide:${ip}`, 10, 15 * 60 * 1000);
-  if (!allowed) return { error: "Too many attempts" };
+  if (!allowed) return { error: tErr("tooManyAttempts") };
 
   const reason = (formData.get("reason") as string) || null;
 
@@ -41,15 +44,15 @@ export async function executeDecision(
     .limit(1);
 
   if (!approvalToken) {
-    return { error: "Invalid or expired token" };
+    return { error: tErr("invalidOrExpiredToken") };
   }
 
   if (approvalToken.usedAt) {
-    return { error: "This token has already been used" };
+    return { error: tErr("tokenAlreadyUsed") };
   }
 
   if (approvalToken.expiresAt < new Date()) {
-    return { error: "This token has expired" };
+    return { error: tErr("tokenExpired") };
   }
 
   const [booking] = await db
@@ -59,11 +62,11 @@ export async function executeDecision(
     .limit(1);
 
   if (!booking) {
-    return { error: "Booking not found" };
+    return { error: tErr("bookingNotFound") };
   }
 
   if (booking.status !== "requested") {
-    return { error: `Booking already ${booking.status}` };
+    return { error: tErr("bookingAlready", { status: tBooking(booking.status as "requested") }) };
   }
 
   const newStatus = approvalToken.action === "approve" ? "approved" : "declined";

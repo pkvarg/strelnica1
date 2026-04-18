@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -21,6 +22,9 @@ interface BookingRow {
 }
 
 export function BookingsRowsTable({ bookings }: { bookings: BookingRow[] }) {
+  const t = useTranslations("dangerZone");
+  const tAdmin = useTranslations("admin");
+  const tBooking = useTranslations("booking");
   const [isPending, startTransition] = useTransition();
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +48,7 @@ export function BookingsRowsTable({ bookings }: { bookings: BookingRow[] }) {
   if (bookings.length === 0) {
     return (
       <p className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 text-sm text-zinc-500">
-        Žiadne rezervácie.
+        {t("noBookings")}
       </p>
     );
   }
@@ -59,10 +63,10 @@ export function BookingsRowsTable({ bookings }: { bookings: BookingRow[] }) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Kedy</TableHead>
-            <TableHead>Strelnica</TableHead>
-            <TableHead>Člen</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>{tAdmin("columns.when")}</TableHead>
+            <TableHead>{tAdmin("columns.range")}</TableHead>
+            <TableHead>{tAdmin("columns.member")}</TableHead>
+            <TableHead>{tAdmin("columns.status")}</TableHead>
             <TableHead className="w-44" />
           </TableRow>
         </TableHeader>
@@ -74,7 +78,7 @@ export function BookingsRowsTable({ bookings }: { bookings: BookingRow[] }) {
                 <TableCell className="font-mono text-xs">{b.startsAt}</TableCell>
                 <TableCell>{b.rangeId}</TableCell>
                 <TableCell className="text-xs">{b.userLabel}</TableCell>
-                <TableCell className="text-xs text-zinc-500">{b.status}</TableCell>
+                <TableCell className="text-xs text-zinc-500">{tBooking(`status.${b.status}` as "status.requested")}</TableCell>
                 <TableCell>
                   <Button
                     type="button"
@@ -87,7 +91,7 @@ export function BookingsRowsTable({ bookings }: { bookings: BookingRow[] }) {
                         : "w-full bg-zinc-800 text-zinc-200 hover:bg-red-900/40 hover:text-red-300"
                     }
                   >
-                    {isConfirm ? "Potvrdiť" : "Hard delete"}
+                    {isConfirm ? t("confirm") : t("hardDelete")}
                   </Button>
                 </TableCell>
               </TableRow>

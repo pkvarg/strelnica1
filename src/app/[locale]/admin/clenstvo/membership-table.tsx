@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -31,17 +32,22 @@ interface Row {
 }
 
 export function MembershipTable({ rows, year }: { rows: Row[]; year: number }) {
+  void year;
+  const t = useTranslations("membership");
+  const tAdmin = useTranslations("admin");
+  const locale = useLocale();
+  const localeTag = locale === "hu" ? "hu-HU" : "sk-SK";
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Člen</TableHead>
-          <TableHead>E-mail</TableHead>
-          <TableHead>Stav účtu</TableHead>
-          <TableHead>Suma</TableHead>
-          <TableHead>Zaplatené</TableHead>
-          <TableHead>Spôsob</TableHead>
-          <TableHead>Poznámka</TableHead>
+          <TableHead>{t("columns.member")}</TableHead>
+          <TableHead>{t("columns.email")}</TableHead>
+          <TableHead>{t("columns.accountStatus")}</TableHead>
+          <TableHead>{t("columns.sum")}</TableHead>
+          <TableHead>{t("columns.paid")}</TableHead>
+          <TableHead>{t("columns.method")}</TableHead>
+          <TableHead>{t("columns.note")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -62,7 +68,7 @@ export function MembershipTable({ rows, year }: { rows: Row[]; year: number }) {
                   r.status === "suspended" ? "bg-red-100 text-red-800" :
                   "bg-zinc-100 text-zinc-500"
                 }`}>
-                  {r.status}
+                  {tAdmin(`userStatus.${r.status}` as "userStatus.active")}
                 </span>
               </TableCell>
               <TableCell>
@@ -70,13 +76,13 @@ export function MembershipTable({ rows, year }: { rows: Row[]; year: number }) {
               </TableCell>
               <TableCell>
                 {cancelled ? (
-                  <span className="text-xs text-red-600">Zrušené</span>
+                  <span className="text-xs text-red-600">{t("cancelled")}</span>
                 ) : paid ? (
                   <span className="text-xs text-green-700">
-                    {m.paidAt!.toLocaleDateString("sk-SK")}
+                    {m.paidAt!.toLocaleDateString(localeTag)}
                   </span>
                 ) : (
-                  <span className="text-xs text-amber-600">Nezaplatené</span>
+                  <span className="text-xs text-amber-600">{t("unpaid")}</span>
                 )}
               </TableCell>
               <TableCell className="text-xs">{m?.paymentMethod ?? "-"}</TableCell>

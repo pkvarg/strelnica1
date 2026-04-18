@@ -153,13 +153,26 @@ export default function HomePage() {
               <Link href={`/${locale}/pravidla-strelnice`} className="hover:text-zinc-300 transition-colors">
                 {t("common.rules")}
               </Link>
+              <Link href={`/${locale}/podmienky`} className="hover:text-zinc-300 transition-colors">
+                {t("common.terms")}
+              </Link>
               <Link href={`/${locale}/kontakt`} className="hover:text-zinc-300 transition-colors">
                 {t("common.contact")}
               </Link>
             </div>
           </div>
-          <div className="mt-8 border-t border-zinc-800 pt-6 text-center text-xs text-zinc-600">
-            &copy; {new Date().getFullYear()} {t("common.appName")}. {t("landing.footerRights")}.
+          <div className="mt-8 flex flex-col items-center gap-2 border-t border-zinc-800 pt-6 text-center text-xs text-zinc-600 sm:flex-row sm:justify-between">
+            <span>
+              &copy; {new Date().getFullYear()} {t("common.appName")}. {t("landing.footerRights")}.
+            </span>
+            <a
+              href="https://pictusweb.sk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 font-mono tracking-wider text-zinc-500 transition-colors hover:text-amber-500"
+            >
+              <span className="text-amber-500/80">&lt;/&gt;</span> PICTUSWEB
+            </a>
           </div>
         </div>
       </footer>

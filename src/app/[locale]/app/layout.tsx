@@ -2,10 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AppNav } from "./nav";
-import { db } from "@/db";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { getLatestConsentVersion } from "@/lib/consent";
+import { enforceConsentUpToDate } from "@/lib/consent";
 
 export default async function AppLayout({
   children,
@@ -19,28 +16,14 @@ export default async function AppLayout({
     redirect(`/${locale}/prihlasenie`);
   }
 
-  const [user] = await db
-    .select({
-      gdprConsentVersion: users.gdprConsentVersion,
-      rangeRulesConsentVersion: users.rangeRulesConsentVersion,
-    })
-    .from(users)
-    .where(eq(users.id, session.user.id))
-    .limit(1);
-
-  if (user) {
-    const latestGdpr = await getLatestConsentVersion("gdpr");
-    const latestRules = await getLatestConsentVersion("range_rules");
-
-    if (
-      (latestGdpr && user.gdprConsentVersion !== latestGdpr) ||
-      (latestRules && user.rangeRulesConsentVersion !== latestRules)
-    ) {
-      redirect(`/${locale}/suhlas`);
-    }
+  if (session.user.role === "admin") {
+    redirect(`/${locale}/admin`);
   }
 
+  await enforceConsentUpToDate(session.user.id, locale);
+
   const t = await getTranslations("common");
+  const tRole = await getTranslations("admin.role");
 
   return (
     <div className="flex min-h-full">
@@ -51,6 +34,9 @@ export default async function AppLayout({
           bookings: t("bookings"),
           profile: t("profile"),
           statistics: t("statistics"),
+          roleAdmin: tRole("admin"),
+          roleMember: tRole("member"),
+          administration: t("administration"),
         }}
         locale={locale}
       />

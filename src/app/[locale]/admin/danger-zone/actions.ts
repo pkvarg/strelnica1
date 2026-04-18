@@ -9,6 +9,7 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { writeAudit } from "@/lib/audit";
+import { getTranslations } from "next-intl/server";
 
 const COOKIE_NAME = "dz_unlock";
 const TTL_SECONDS = 15 * 60;
@@ -41,16 +42,17 @@ export async function unlockDangerZone(
   _prev: UnlockState | null,
   formData: FormData,
 ): Promise<UnlockState> {
+  const t = await getTranslations("dangerZone");
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
-    return { error: "Unauthorized" };
+    return { error: t("unauthorized") };
   }
 
   const expected = process.env.DANGER_ZONE_PASSWORD;
-  if (!expected) return { error: "DANGER_ZONE_PASSWORD not configured" };
+  if (!expected) return { error: t("notConfigured") };
 
   const password = String(formData.get("password") ?? "");
-  if (password !== expected) return { error: "Zlé heslo" };
+  if (password !== expected) return { error: t("wrongPassword") };
 
   const exp = Math.floor(Date.now() / 1000) + TTL_SECONDS;
   const sig = sign(exp, session.user.id);
@@ -105,8 +107,9 @@ async function assertUnlockedAdmin() {
 }
 
 export async function truncateTableAction(tableName: string) {
+  const t = await getTranslations("dangerZone.errors");
   const user = await assertUnlockedAdmin();
-  if (!TRUNCATABLE.has(tableName)) throw new Error("Table not allowed");
+  if (!TRUNCATABLE.has(tableName)) throw new Error(t("tableNotAllowed"));
 
   await db.execute(
     sql.raw(`TRUNCATE TABLE "${tableName}" RESTART IDENTITY CASCADE`),
@@ -142,8 +145,9 @@ export async function deleteBookingHardAction(bookingId: string) {
 }
 
 export async function deleteUserHardAction(userId: string) {
+  const t = await getTranslations("dangerZone.errors");
   const user = await assertUnlockedAdmin();
-  if (userId === user.id) throw new Error("Cannot delete yourself");
+  if (userId === user.id) throw new Error(t("cannotDeleteSelf"));
 
   await db.transaction(async (tx) => {
     // Break incoming FK refs before removing the user row.
@@ -184,8 +188,9 @@ export async function setAdminStatusAction(
   userId: string,
   nextStatus: "active" | "suspended",
 ) {
+  const t = await getTranslations("dangerZone.errors");
   const user = await assertUnlockedAdmin();
-  if (userId === user.id) throw new Error("Nemôžete meniť svoj vlastný status");
+  if (userId === user.id) throw new Error(t("cannotChangeSelf"));
 
   const [row] = await db
     .select({ id: users.id, role: users.role, status: users.status })
@@ -193,8 +198,8 @@ export async function setAdminStatusAction(
     .where(eq(users.id, userId))
     .limit(1);
 
-  if (!row) throw new Error("Admin not found");
-  if (row.role !== "admin") throw new Error("Target is not admin");
+  if (!row) throw new Error(t("adminNotFound"));
+  if (row.role !== "admin") throw new Error(t("targetNotAdmin"));
 
   await db
     .update(users)

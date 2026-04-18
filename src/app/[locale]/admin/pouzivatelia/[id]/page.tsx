@@ -17,6 +17,7 @@ export default async function UserDetailPage({
 }) {
   const { id } = await params;
   const t = await getTranslations("admin");
+  const tBooking = await getTranslations("booking");
 
   const [user] = await db
     .select()
@@ -66,21 +67,21 @@ export default async function UserDetailPage({
       <div className="mt-6 space-y-6">
         <div className="rounded-lg border p-4">
           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <dt className="font-medium">Meno</dt>
+            <dt className="font-medium">{t("user.name")}</dt>
             <dd>{user.firstName} {user.lastName}</dd>
-            <dt className="font-medium">E-mail</dt>
+            <dt className="font-medium">{t("user.email")}</dt>
             <dd>{user.email}</dd>
-            <dt className="font-medium">Telefón</dt>
+            <dt className="font-medium">{t("user.phone")}</dt>
             <dd>{user.phoneE164}</dd>
-            <dt className="font-medium">Rola</dt>
-            <dd>{user.role}</dd>
-            <dt className="font-medium">Stav</dt>
-            <dd>{user.status}</dd>
-            <dt className="font-medium">Jazyk</dt>
-            <dd>{user.locale}</dd>
-            <dt className="font-medium">Vytvorený</dt>
+            <dt className="font-medium">{t("user.role")}</dt>
+            <dd>{t(`role.${user.role}` as "role.member")}</dd>
+            <dt className="font-medium">{t("user.status")}</dt>
+            <dd>{t(`userStatus.${user.status}` as "userStatus.active")}</dd>
+            <dt className="font-medium">{t("user.locale")}</dt>
+            <dd>{t(`locale.${user.locale}` as "locale.sk")}</dd>
+            <dt className="font-medium">{t("user.created")}</dt>
             <dd>{fmtDateTime(user.createdAt)}</dd>
-            <dt className="font-medium">Posledné prihlásenie</dt>
+            <dt className="font-medium">{t("user.lastLogin")}</dt>
             <dd>{user.lastLoginAt ? fmtDateTime(user.lastLoginAt) : "—"}</dd>
           </dl>
         </div>
@@ -109,15 +110,15 @@ export default async function UserDetailPage({
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-zinc-100">
-                Zbrojný preukaz
+                {t("license.title")}
               </h2>
               {user.zbrojnyPreukazVerifiedAt ? (
                 <span className="rounded-full bg-emerald-900/40 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
-                  Overený {fmtDate(user.zbrojnyPreukazVerifiedAt)}
+                  {t("license.verified", { date: fmtDate(user.zbrojnyPreukazVerifiedAt) })}
                 </span>
               ) : user.zbrojnyPreukazCategory ? (
                 <span className="rounded-full bg-amber-900/40 px-2.5 py-0.5 text-xs font-medium text-amber-400">
-                  Neoverený
+                  {t("license.unverified")}
                 </span>
               ) : null}
             </div>
@@ -129,17 +130,17 @@ export default async function UserDetailPage({
             )}
           </div>
           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <dt className="font-medium text-zinc-400">Kategoria</dt>
+            <dt className="font-medium text-zinc-400">{t("license.category")}</dt>
             <dd className="text-zinc-200">
               {user.zbrojnyPreukazCategory ?? "\u2014"}
             </dd>
-            <dt className="font-medium text-zinc-400">Cislo preukazu</dt>
+            <dt className="font-medium text-zinc-400">{t("license.number")}</dt>
             <dd className="text-zinc-200">{zpNumber ?? "\u2014"}</dd>
-            <dt className="font-medium text-zinc-400">Vydany dna</dt>
+            <dt className="font-medium text-zinc-400">{t("license.issuedAt")}</dt>
             <dd className="text-zinc-200">
               {user.zbrojnyPreukazIssuedAt ?? "\u2014"}
             </dd>
-            <dt className="font-medium text-zinc-400">Platnost do</dt>
+            <dt className="font-medium text-zinc-400">{t("license.expiresAt")}</dt>
             <dd
               className={
                 zpExpired
@@ -150,10 +151,10 @@ export default async function UserDetailPage({
               }
             >
               {user.zbrojnyPreukazExpiresAt ?? "\u2014"}
-              {zpExpired && " (expirovany)"}
-              {zpExpiringSoon && " (coskoro expiruje)"}
+              {zpExpired && ` ${t("license.expired")}`}
+              {zpExpiringSoon && ` ${t("license.expiringSoon")}`}
             </dd>
-            <dt className="font-medium text-zinc-400">Vydavajuci organ</dt>
+            <dt className="font-medium text-zinc-400">{t("license.authority")}</dt>
             <dd className="text-zinc-200">
               {user.zbrojnyPreukazIssuingAuthority ?? "\u2014"}
             </dd>
@@ -171,15 +172,17 @@ export default async function UserDetailPage({
         />
 
         <div>
-          <h2 className="text-lg font-semibold">Členstvo</h2>
+          <h2 className="text-lg font-semibold">{t("user.memberships")}</h2>
           {userMemberships.length === 0 ? (
-            <p className="mt-1 text-sm text-zinc-500">Žiadne členstvo</p>
+            <p className="mt-1 text-sm text-zinc-500">{t("user.noMemberships")}</p>
           ) : (
             <ul className="mt-2 space-y-1 text-sm">
               {userMemberships.map((m) => (
                 <li key={m.year}>
                   {m.year} — {m.feeAmount} {m.currency}{" "}
-                  {m.paidAt ? `(zaplatené ${fmtDate(m.paidAt)})` : "(nezaplatené)"}
+                  {m.paidAt
+                    ? `(${t("user.paidOn", { date: fmtDate(m.paidAt) })})`
+                    : `(${t("user.unpaidShort")})`}
                 </li>
               ))}
             </ul>
@@ -187,14 +190,14 @@ export default async function UserDetailPage({
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold">Posledné rezervácie</h2>
+          <h2 className="text-lg font-semibold">{t("user.recentBookings")}</h2>
           {userBookings.length === 0 ? (
-            <p className="mt-1 text-sm text-zinc-500">Žiadne rezervácie</p>
+            <p className="mt-1 text-sm text-zinc-500">{t("user.noBookings")}</p>
           ) : (
             <ul className="mt-2 space-y-1 text-sm">
               {userBookings.map((b) => (
                 <li key={b.id}>
-                  {b.rangeId} — {fmtDateTime(b.startsAt)} → {fmtDateTime(b.endsAt)} [{b.status}]
+                  {b.rangeId} — {fmtDateTime(b.startsAt)} → {fmtDateTime(b.endsAt)} [{tBooking(`status.${b.status}` as "status.requested")}]
                 </li>
               ))}
             </ul>

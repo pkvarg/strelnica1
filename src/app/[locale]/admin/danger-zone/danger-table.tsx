@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -34,21 +35,21 @@ interface Counts {
 
 interface Row {
   key: keyof Counts;
-  label: string;
-  note?: string;
+  labelKey: string;
+  noteKey?: string;
 }
 
 const rows: Row[] = [
-  { key: "bookings", label: "Rezervácie" },
-  { key: "notifications_log", label: "Notifikačné logy" },
-  { key: "audit_log", label: "Audit log", note: "Bude znovu založený po každej akcii" },
-  { key: "bot_log", label: "Bot log" },
-  { key: "contact_messages", label: "Kontakt správy" },
-  { key: "admin_approval_tokens", label: "Schvaľovacie tokeny" },
-  { key: "verification_codes", label: "OTP kódy" },
-  { key: "memberships", label: "Členstvá" },
-  { key: "closures", label: "Uzávierky" },
-  { key: "opening_hours_templates", label: "Otváracie hodiny" },
+  { key: "bookings", labelKey: "bookings" },
+  { key: "notifications_log", labelKey: "notifications_log" },
+  { key: "audit_log", labelKey: "audit_log", noteKey: "audit_log_note" },
+  { key: "bot_log", labelKey: "bot_log" },
+  { key: "contact_messages", labelKey: "contact_messages" },
+  { key: "admin_approval_tokens", labelKey: "admin_approval_tokens" },
+  { key: "verification_codes", labelKey: "verification_codes" },
+  { key: "memberships", labelKey: "memberships" },
+  { key: "closures", labelKey: "closures" },
+  { key: "opening_hours_templates", labelKey: "opening_hours_templates" },
 ];
 
 const TABLE_KEY_TO_DB_NAME: Record<string, string> = {
@@ -65,6 +66,8 @@ const TABLE_KEY_TO_DB_NAME: Record<string, string> = {
 };
 
 export function DangerTable({ counts }: { counts: Counts }) {
+  const t = useTranslations("dangerZone");
+  const tRows = useTranslations("dangerZone.rows");
   const [isPending, startTransition] = useTransition();
   const [confirm, setConfirm] = useState<string | null>(null);
 
@@ -119,12 +122,11 @@ export function DangerTable({ counts }: { counts: Counts }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
         <p className="text-sm text-zinc-400">
-          <span className="font-medium text-zinc-200">{totalRows}</span> záznamov
-          celkovo · Odomknuté na 15 minút
+          {t("unlocked", { total: totalRows })}
         </p>
         <form action={lockDangerZone}>
           <Button type="submit" variant="outline" size="sm">
-            Zamknúť
+            {t("lock")}
           </Button>
         </form>
       </div>
@@ -132,8 +134,8 @@ export function DangerTable({ counts }: { counts: Counts }) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Tabuľka</TableHead>
-            <TableHead className="text-right">Počet</TableHead>
+            <TableHead>{t("tableCol")}</TableHead>
+            <TableHead className="text-right">{t("countCol")}</TableHead>
             <TableHead className="w-40" />
           </TableRow>
         </TableHeader>
@@ -144,9 +146,9 @@ export function DangerTable({ counts }: { counts: Counts }) {
             return (
               <TableRow key={row.key}>
                 <TableCell>
-                  <div className="font-medium">{row.label}</div>
-                  {row.note && (
-                    <div className="text-xs text-zinc-500">{row.note}</div>
+                  <div className="font-medium">{tRows(row.labelKey as "bookings")}</div>
+                  {row.noteKey && (
+                    <div className="text-xs text-zinc-500">{tRows(row.noteKey as "audit_log_note")}</div>
                   )}
                 </TableCell>
                 <TableCell className="text-right font-mono text-sm">{c}</TableCell>
@@ -162,7 +164,7 @@ export function DangerTable({ counts }: { counts: Counts }) {
                         : "w-full bg-zinc-800 text-zinc-200 hover:bg-red-900/40 hover:text-red-300"
                     }
                   >
-                    {isConfirm ? "Potvrdiť vymazanie" : "Vymazať"}
+                    {isConfirm ? t("confirmDelete") : t("delete")}
                   </Button>
                 </TableCell>
               </TableRow>
@@ -171,9 +173,9 @@ export function DangerTable({ counts }: { counts: Counts }) {
 
           <TableRow>
             <TableCell>
-              <div className="font-medium">pg-boss jobs & schedules</div>
+              <div className="font-medium">{t("pgbossLabel")}</div>
               <div className="text-xs text-zinc-500">
-                Zmaže všetky naplánované a bežiace jobs
+                {t("pgbossNote")}
               </div>
             </TableCell>
             <TableCell className="text-right font-mono text-sm">
@@ -191,7 +193,7 @@ export function DangerTable({ counts }: { counts: Counts }) {
                     : "w-full bg-zinc-800 text-zinc-200 hover:bg-red-900/40 hover:text-red-300"
                 }
               >
-                {confirm === "pgboss" ? "Potvrdiť vymazanie" : "Vymazať"}
+                {confirm === "pgboss" ? t("confirmDelete") : t("delete")}
               </Button>
             </TableCell>
           </TableRow>
@@ -199,11 +201,9 @@ export function DangerTable({ counts }: { counts: Counts }) {
       </Table>
 
       <div className="rounded-lg border border-red-900/50 bg-red-950/20 p-4">
-        <h2 className="font-semibold text-red-400">Vymazať všetko</h2>
+        <h2 className="font-semibold text-red-400">{t("nukeTitle")}</h2>
         <p className="mt-1 text-sm text-zinc-400">
-          Vyprázdni všetky tabuľky vyššie <span className="font-medium text-zinc-200">+</span>{" "}
-          zmaže <span className="font-medium text-zinc-200">{counts.nonAdminUsers}</span>{" "}
-          neadmin používateľov. Admini a zdrojové dáta (strelnice, GDPR dokumenty) zostávajú.
+          {t("nukeDescription", { count: counts.nonAdminUsers })}
         </p>
         <Button
           type="button"
@@ -215,9 +215,7 @@ export function DangerTable({ counts }: { counts: Counts }) {
               : "mt-3 bg-red-900/40 text-red-300 hover:bg-red-900/60"
           }
         >
-          {confirm === "nuke"
-            ? "Potvrdiť vymazanie všetkého"
-            : "Vymazať všetko"}
+          {confirm === "nuke" ? t("nukeConfirm") : t("nukeTitle")}
         </Button>
       </div>
     </div>

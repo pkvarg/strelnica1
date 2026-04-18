@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -23,6 +24,8 @@ interface UserRow {
 }
 
 export function UsersRowsTable({ users }: { users: UserRow[] }) {
+  const t = useTranslations("dangerZone");
+  const tAdmin = useTranslations("admin");
   const [isPending, startTransition] = useTransition();
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +49,7 @@ export function UsersRowsTable({ users }: { users: UserRow[] }) {
   if (users.length === 0) {
     return (
       <p className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 text-sm text-zinc-500">
-        Žiadni neadmin používatelia.
+        {t("noNonAdminUsers")}
       </p>
     );
   }
@@ -61,10 +64,10 @@ export function UsersRowsTable({ users }: { users: UserRow[] }) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Meno</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Telefón</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>{tAdmin("columns.name")}</TableHead>
+            <TableHead>{tAdmin("columns.email")}</TableHead>
+            <TableHead>{tAdmin("columns.phone")}</TableHead>
+            <TableHead>{tAdmin("columns.status")}</TableHead>
             <TableHead className="w-44" />
           </TableRow>
         </TableHeader>
@@ -78,7 +81,7 @@ export function UsersRowsTable({ users }: { users: UserRow[] }) {
                 </TableCell>
                 <TableCell className="font-mono text-xs">{u.email}</TableCell>
                 <TableCell className="font-mono text-xs">{u.phoneE164}</TableCell>
-                <TableCell className="text-xs text-zinc-500">{u.status}</TableCell>
+                <TableCell className="text-xs text-zinc-500">{tAdmin(`userStatus.${u.status}` as "userStatus.active")}</TableCell>
                 <TableCell>
                   <Button
                     type="button"
@@ -91,7 +94,7 @@ export function UsersRowsTable({ users }: { users: UserRow[] }) {
                         : "w-full bg-zinc-800 text-zinc-200 hover:bg-red-900/40 hover:text-red-300"
                     }
                   >
-                    {isConfirm ? "Potvrdiť" : "Hard delete"}
+                    {isConfirm ? t("confirm") : t("hardDelete")}
                   </Button>
                 </TableCell>
               </TableRow>

@@ -12,3 +12,4 @@ export * from "./auditLog";
 export * from "./consentDocuments";
 export * from "./botLog";
 export * from "./appSettings";
+export * from "./contactBans";

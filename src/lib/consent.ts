@@ -1,6 +1,7 @@
 import { db } from "@/db";
-import { consentDocuments } from "@/db/schema";
+import { consentDocuments, users } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { redirect } from "next/navigation";
 
 export async function getLatestConsent(
   kind: "gdpr" | "range_rules" | "terms",
@@ -27,4 +28,27 @@ export async function getLatestConsentVersion(
     .limit(1);
 
   return doc?.version ?? null;
+}
+
+export async function enforceConsentUpToDate(userId: string, locale: string) {
+  const [user] = await db
+    .select({
+      gdprConsentVersion: users.gdprConsentVersion,
+      rangeRulesConsentVersion: users.rangeRulesConsentVersion,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!user) return;
+
+  const latestGdpr = await getLatestConsentVersion("gdpr");
+  const latestRules = await getLatestConsentVersion("range_rules");
+
+  if (
+    (latestGdpr && user.gdprConsentVersion !== latestGdpr) ||
+    (latestRules && user.rangeRulesConsentVersion !== latestRules)
+  ) {
+    redirect(`/${locale}/suhlas`);
+  }
 }

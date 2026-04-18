@@ -10,6 +10,7 @@ import { writeAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { notifyInvitation } from "@/lib/notify";
 import { rateLimit } from "@/lib/rate-limit";
+import { getTranslations } from "next-intl/server";
 
 const INVITATION_TTL_MS = 72 * 60 * 60 * 1000;
 
@@ -23,13 +24,14 @@ export async function inviteMember(
   _prev: InviteResult | null,
   formData: FormData,
 ): Promise<InviteResult> {
+  const t = await getTranslations("admin.errors");
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
-    return { error: "Unauthorized" };
+    return { error: t("unauthorized") };
   }
 
   const { allowed } = rateLimit(`invite:${session.user.id}`, 10, 15 * 60 * 1000);
-  if (!allowed) return { error: "Too many invitations; slow down" };
+  if (!allowed) return { error: t("tooManyInvitations") };
 
   const email = (formData.get("email") as string)?.trim().toLowerCase();
   const phone = (formData.get("phone") as string)?.trim();
@@ -38,7 +40,7 @@ export async function inviteMember(
   const locale = (formData.get("locale") as string) || "sk";
 
   if (!email || !phone || !firstName || !lastName) {
-    return { error: "All fields are required" };
+    return { error: t("allFieldsRequired") };
   }
 
   const existing = await db
@@ -48,7 +50,7 @@ export async function inviteMember(
     .limit(1);
 
   if (existing.length > 0) {
-    return { error: "User with this email already exists" };
+    return { error: t("userWithEmailExists") };
   }
 
   const token = generateToken();
@@ -105,13 +107,14 @@ export async function updateUserAdmin(
   _prev: EditResult | null,
   formData: FormData,
 ): Promise<EditResult> {
+  const t = await getTranslations("admin.errors");
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
-    return { error: "Unauthorized" };
+    return { error: t("unauthorized") };
   }
 
   const { allowed } = rateLimit(`admin-edit-user:${session.user.id}`, 30, 15 * 60 * 1000);
-  if (!allowed) return { error: "Too many requests" };
+  if (!allowed) return { error: t("tooManyRequests") };
 
   const [before] = await db
     .select()
@@ -119,7 +122,7 @@ export async function updateUserAdmin(
     .where(eq(users.id, userId))
     .limit(1);
 
-  if (!before) return { error: "User not found" };
+  if (!before) return { error: t("userNotFound") };
 
   const firstName = (formData.get("firstName") as string)?.trim();
   const lastName = (formData.get("lastName") as string)?.trim();
@@ -136,7 +139,7 @@ export async function updateUserAdmin(
   const notesAdmin = (formData.get("notesAdmin") as string)?.trim() || null;
 
   if (!firstName || !lastName || !email || !phone) {
-    return { error: "Name, email and phone are required" };
+    return { error: t("nameEmailPhoneRequired") };
   }
 
   // Prevent email / phone collisions with other users
@@ -147,7 +150,7 @@ export async function updateUserAdmin(
       .where(eq(users.email, email))
       .limit(1);
     if (collision && collision.id !== userId) {
-      return { error: "Email already in use" };
+      return { error: t("emailInUse") };
     }
   }
   if (phone !== before.phoneE164) {
@@ -157,13 +160,13 @@ export async function updateUserAdmin(
       .where(eq(users.phoneE164, phone))
       .limit(1);
     if (collision && collision.id !== userId) {
-      return { error: "Phone already in use" };
+      return { error: t("phoneInUse") };
     }
   }
 
   // Admin demoting themselves from admin would lock everyone out; guard.
   if (before.id === session.user.id && role !== "admin") {
-    return { error: "You cannot remove your own admin role" };
+    return { error: t("cannotRemoveSelfAdmin") };
   }
 
   await db
@@ -249,6 +252,7 @@ export async function setUserStatus(
 }
 
 export async function anonymizeUser(userId: string) {
+  const t = await getTranslations("admin.anonymized");
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
     throw new Error("Unauthorized");
@@ -267,8 +271,8 @@ export async function anonymizeUser(userId: string) {
     .set({
       email: `anonymized-${userId}@deleted.local`,
       phoneE164: `+000${userId.slice(0, 10)}`,
-      firstName: "Anonymizovaný",
-      lastName: "Používateľ",
+      firstName: t("firstName"),
+      lastName: t("lastName"),
       birthDate: null,
       birthPlace: null,
       addressStreet: null,
@@ -320,13 +324,14 @@ export async function updateUserLicense(
   _prev: LicenseResult | null,
   formData: FormData,
 ): Promise<LicenseResult> {
+  const t = await getTranslations("admin.errors");
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
-    return { error: "Unauthorized" };
+    return { error: t("unauthorized") };
   }
 
   const userId = formData.get("userId") as string;
-  if (!userId) return { error: "Missing userId" };
+  if (!userId) return { error: t("missingUserId") };
 
   const number = (formData.get("number") as string)?.trim() || null;
   const categoryRaw = (formData.get("category") as string)?.trim() || null;
@@ -341,16 +346,16 @@ export async function updateUserLicense(
       : null;
 
   if (categoryRaw && !category) {
-    return { error: "Invalid category" };
+    return { error: t("invalidCategory") };
   }
 
   // Validate dates (basic ISO date check)
   const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
   if (issuedAtRaw && !dateRegex.test(issuedAtRaw)) {
-    return { error: "Invalid issuedAt date format" };
+    return { error: t("invalidIssuedAtFormat") };
   }
   if (expiresAtRaw && !dateRegex.test(expiresAtRaw)) {
-    return { error: "Invalid expiresAt date format" };
+    return { error: t("invalidExpiresAtFormat") };
   }
 
   // Fetch current record for audit diff
@@ -366,7 +371,7 @@ export async function updateUserLicense(
     .where(eq(users.id, userId))
     .limit(1);
 
-  if (!before) return { error: "User not found" };
+  if (!before) return { error: t("userNotFound") };
 
   // Encrypt the license number if provided
   const encryptedNumber = number ? encrypt(number) : null;

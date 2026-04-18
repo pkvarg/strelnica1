@@ -5,14 +5,16 @@ import { db } from "@/db";
 import { closures } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 
 export async function addClosure(
   _prev: { error?: string; success?: boolean } | null,
   formData: FormData,
 ) {
+  const t = await getTranslations("admin.errors");
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
-    return { error: "Unauthorized" };
+    return { error: t("unauthorized") };
   }
 
   const rangeId = (formData.get("rangeId") as string) || null;
@@ -24,7 +26,7 @@ export async function addClosure(
   const reasonHu = (formData.get("reasonHu") as string) || null;
 
   if (!startDate || !endDate) {
-    return { error: "Start and end dates are required" };
+    return { error: t("startEndRequired") };
   }
 
   await db.insert(closures).values({
@@ -44,9 +46,10 @@ export async function updateClosure(
   _prev: { error?: string; success?: boolean } | null,
   formData: FormData,
 ) {
+  const t = await getTranslations("admin.errors");
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
-    return { error: "Unauthorized" };
+    return { error: t("unauthorized") };
   }
 
   const id = formData.get("id") as string;
@@ -59,7 +62,7 @@ export async function updateClosure(
   const reasonHu = (formData.get("reasonHu") as string) || null;
 
   if (!id || !startDate || !endDate) {
-    return { error: "Required fields missing" };
+    return { error: t("requiredFieldsMissing") };
   }
 
   await db

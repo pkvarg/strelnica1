@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { checkInBookingAdmin } from "./actions";
 import { Button } from "@/components/ui/button";
 
@@ -22,6 +23,11 @@ const statusColors: Record<string, string> = {
 };
 
 export function TodaySchedule({ bookings }: { bookings: TodayBooking[] }) {
+  const tBooking = useTranslations("booking");
+  const tAdmin = useTranslations("admin");
+  const locale = useLocale();
+  const localeTag = locale === "hu" ? "hu-HU" : "sk-SK";
+
   if (bookings.length === 0) {
     return <p className="text-sm text-zinc-500">-</p>;
   }
@@ -35,12 +41,12 @@ export function TodaySchedule({ bookings }: { bookings: TodayBooking[] }) {
         >
           <span className="font-medium">{b.rangeId}</span>
           <span>
-            {b.startsAt.toLocaleTimeString("sk-SK", {
+            {b.startsAt.toLocaleTimeString(localeTag, {
               hour: "2-digit",
               minute: "2-digit",
             })}
             {" - "}
-            {b.endsAt.toLocaleTimeString("sk-SK", {
+            {b.endsAt.toLocaleTimeString(localeTag, {
               hour: "2-digit",
               minute: "2-digit",
             })}
@@ -51,14 +57,14 @@ export function TodaySchedule({ bookings }: { bookings: TodayBooking[] }) {
           <span
             className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[b.status] ?? "bg-zinc-100"}`}
           >
-            {b.status}
+            {tBooking(`status.${b.status}` as "status.requested")}
           </span>
           {b.status === "approved" && (
             <Button
               size="xs"
               onClick={() => checkInBookingAdmin(b.id)}
             >
-              Check-in
+              {tAdmin("checkIn")}
             </Button>
           )}
         </div>

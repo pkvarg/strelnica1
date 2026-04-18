@@ -16,6 +16,8 @@ export default async function AdminBookingsPage({
 }) {
   const params = await searchParams;
   const t = await getTranslations("booking");
+  const tAdmin = await getTranslations("admin");
+  const tCommon = await getTranslations("common");
 
   const allRanges = await db
     .select({ id: ranges.id, nameSk: ranges.nameSk })
@@ -56,14 +58,14 @@ export default async function AdminBookingsPage({
 
       <form className="mt-4 flex flex-wrap gap-3">
         <select name="rangeId" className="rounded-md border px-3 py-1.5 text-sm" defaultValue={params.rangeId ?? ""}>
-          <option value="">Všetky strelnice</option>
+          <option value="">{tAdmin("allRanges")}</option>
           {allRanges.map((r) => (
             <option key={r.id} value={r.id}>{r.nameSk}</option>
           ))}
         </select>
 
         <select name="status" className="rounded-md border px-3 py-1.5 text-sm" defaultValue={params.status ?? ""}>
-          <option value="">Všetky stavy</option>
+          <option value="">{tAdmin("allStatuses")}</option>
           {(["requested", "approved", "declined", "cancelled", "checked_in", "completed", "no_show"] as const).map((s) => (
             <option key={s} value={s}>{t(`status.${s}`)}</option>
           ))}
@@ -73,7 +75,7 @@ export default async function AdminBookingsPage({
         <input name="to" type="date" className="rounded-md border px-3 py-1.5 text-sm" defaultValue={params.to ?? ""} />
 
         <button type="submit" className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm text-white">
-          Filtrovať
+          {tCommon("filter")}
         </button>
       </form>
 

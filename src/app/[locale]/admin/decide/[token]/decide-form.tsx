@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useTranslations } from "next-intl";
 import { executeDecision } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,7 @@ export function DecideForm({
   token: string;
   action: string;
 }) {
+  const t = useTranslations("admin");
   const boundAction = executeDecision.bind(null, token);
   const [state, formAction, isPending] = useActionState(boundAction, null);
 
@@ -21,8 +23,8 @@ export function DecideForm({
       <div className="rounded-lg bg-green-50 p-4 text-center">
         <p className="font-medium text-green-800">
           {state.action === "approved"
-            ? "Rezervácia bola schválená."
-            : "Rezervácia bola zamietnutá."}
+            ? t("decide.approvedMessage")
+            : t("decide.declinedMessage")}
         </p>
       </div>
     );
@@ -32,7 +34,7 @@ export function DecideForm({
     <form action={formAction} className="space-y-4">
       {action === "decline" && (
         <div className="space-y-2">
-          <Label htmlFor="reason">Dôvod zamietnutia</Label>
+          <Label htmlFor="reason">{t("declineReason")}</Label>
           <Input id="reason" name="reason" />
         </div>
       )}
@@ -50,8 +52,8 @@ export function DecideForm({
         {isPending
           ? "..."
           : action === "approve"
-            ? "Schváliť"
-            : "Zamietnuť"}
+            ? t("approve")
+            : t("decline")}
       </Button>
     </form>
   );

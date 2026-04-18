@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { verifyUserLicense, unverifyUserLicense } from "../actions";
 import { ShieldCheck, ShieldX } from "lucide-react";
@@ -11,6 +12,8 @@ export function LicenseVerifyButton({
   userId: string;
   isVerified: boolean;
 }) {
+  const t = useTranslations("admin.license");
+
   if (isVerified) {
     return (
       <Button
@@ -20,7 +23,7 @@ export function LicenseVerifyButton({
         onClick={() => unverifyUserLicense(userId)}
       >
         <ShieldX size={14} />
-        Zrušiť overenie
+        {t("unverifyButton")}
       </Button>
     );
   }
@@ -33,7 +36,7 @@ export function LicenseVerifyButton({
       onClick={() => verifyUserLicense(userId)}
     >
       <ShieldCheck size={14} />
-      Overiť preukaz
+      {t("verifyButton")}
     </Button>
   );
 }

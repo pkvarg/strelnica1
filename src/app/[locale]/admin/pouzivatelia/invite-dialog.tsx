@@ -65,8 +65,8 @@ export function InviteDialog() {
               className="w-full rounded-md border px-3 py-2 text-sm"
               defaultValue="sk"
             >
-              <option value="sk">Slovenčina</option>
-              <option value="hu">Magyar</option>
+              <option value="sk">{t("locale.sk")}</option>
+              <option value="hu">{t("locale.hu")}</option>
             </select>
           </div>
 

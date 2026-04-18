@@ -48,6 +48,7 @@ function EditCard({
   onClose: () => void;
 }) {
   const t = useTranslations("closures");
+  const tCommon = useTranslations("common");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -65,7 +66,7 @@ function EditCard({
   return (
     <div className="rounded-lg border border-amber-800/50 bg-zinc-900 p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-amber-400">Upraviť uzávierku</h3>
+        <h3 className="text-sm font-semibold text-amber-400">{t("editTitle")}</h3>
         <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300">
           <X size={16} />
         </button>
@@ -102,12 +103,12 @@ function EditCard({
 
         <div className="grid grid-cols-4 gap-3">
           <div className="space-y-1">
-            <label className="text-xs text-zinc-400">Od (voliteľné)</label>
+            <label className="text-xs text-zinc-400">{t("timeFromOptional")}</label>
             <Input name="startTime" type="time" defaultValue={toTimeStr(closure.startsAt)} />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-zinc-400">Do (voliteľné)</label>
+            <label className="text-xs text-zinc-400">{t("timeToOptional")}</label>
             <Input name="endTime" type="time" defaultValue={toTimeStr(closure.endsAt)} />
           </div>
 
@@ -126,10 +127,10 @@ function EditCard({
 
         <div className="flex gap-2">
           <Button type="submit" size="sm" disabled={saving}>
-            {saving ? "..." : "Uložiť"}
+            {saving ? "..." : tCommon("save")}
           </Button>
           <Button type="button" variant="ghost" size="sm" onClick={onClose}>
-            Zrušiť
+            {tCommon("cancel")}
           </Button>
         </div>
       </form>

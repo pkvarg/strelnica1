@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { useTranslations } from "next-intl";
 import { requestPhoneChange, confirmPhoneChange } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,25 +11,48 @@ interface Props {
   currentPhone: string;
 }
 
-function errorLabel(key: string | undefined): string | null {
-  if (!key) return null;
-  const map: Record<string, string> = {
-    invalidPhone: "Neplatný telefón (formát +421900123456)",
-    samePhone: "Zadali ste rovnaký telefón",
-    phoneTaken: "Tento telefón už používa iný účet",
-    smsDisabled: "SMS overenie je dočasne vypnuté. Kontaktujte admina.",
-    sendFailed: "Nepodarilo sa odoslať SMS. Skúste neskôr.",
-    tooManyRequests: "Príliš veľa pokusov, skúste o hodinu",
-    invalidCode: "Neplatný kód",
-    expiredToken: "Kód expiroval, požiadajte o nový",
-    invalidToken: "Neplatná žiadosť",
-    tooManyAttempts: "Príliš veľa nesprávnych pokusov",
-    userNotFound: "Používateľ sa nenašiel",
+type PhoneErrorKey =
+  | "invalidPhone"
+  | "samePhone"
+  | "phoneTaken"
+  | "smsDisabled"
+  | "sendFailed"
+  | "tooManyRequests"
+  | "invalidCode"
+  | "expiredToken"
+  | "invalidToken"
+  | "tooManyAttempts"
+  | "userNotFound";
+
+const ERROR_KEYS: readonly PhoneErrorKey[] = [
+  "invalidPhone",
+  "samePhone",
+  "phoneTaken",
+  "smsDisabled",
+  "sendFailed",
+  "tooManyRequests",
+  "invalidCode",
+  "expiredToken",
+  "invalidToken",
+  "tooManyAttempts",
+  "userNotFound",
+] as const;
+
+function useErrorLabel() {
+  const t = useTranslations("profile.phoneErrors");
+  return (key: string | undefined): string | null => {
+    if (!key) return null;
+    if ((ERROR_KEYS as readonly string[]).includes(key)) {
+      return t(key as PhoneErrorKey);
+    }
+    return key;
   };
-  return map[key] ?? key;
 }
 
 export function PhoneChange({ currentPhone }: Props) {
+  const t = useTranslations("profile");
+  const tCommon = useTranslations("common");
+  const errorLabel = useErrorLabel();
   const [reqState, reqAction, reqPending] = useActionState(requestPhoneChange, null);
   const [step, setStep] = useState<"view" | "enter" | "verify" | "done">("view");
   const [newPhone, setNewPhone] = useState("");
@@ -41,7 +65,7 @@ export function PhoneChange({ currentPhone }: Props) {
   if (step === "view") {
     return (
       <div className="space-y-2">
-        <Label>Telefón</Label>
+        <Label>{t("phone")}</Label>
         <div className="flex items-center gap-2">
           <Input value={currentPhone} disabled className="flex-1" />
           <Button
@@ -49,7 +73,7 @@ export function PhoneChange({ currentPhone }: Props) {
             onClick={() => setStep("enter")}
             className="bg-amber-600 text-zinc-950 hover:bg-amber-500"
           >
-            Zmeniť
+            {t("phoneChangeButton")}
           </Button>
         </div>
       </div>
@@ -59,9 +83,9 @@ export function PhoneChange({ currentPhone }: Props) {
   if (step === "enter") {
     return (
       <div className="space-y-2 rounded-lg border border-zinc-800 bg-zinc-900/40 p-4">
-        <Label htmlFor="phone-new">Nový telefón</Label>
+        <Label htmlFor="phone-new">{t("phoneNewLabel")}</Label>
         <p className="text-xs text-zinc-500">
-          Zadajte nové číslo v medzinárodnom formáte, napr. +421900123456. Na nové číslo pošleme SMS s overovacím kódom.
+          {t("phoneNewHelp")}
         </p>
         <form action={reqAction} className="space-y-2">
           <Input
@@ -83,14 +107,14 @@ export function PhoneChange({ currentPhone }: Props) {
               disabled={reqPending}
               className="bg-amber-600 text-zinc-950 hover:bg-amber-500"
             >
-              {reqPending ? "..." : "Odoslať kód"}
+              {reqPending ? "..." : t("phoneSendCode")}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => setStep("view")}
             >
-              Zrušiť
+              {tCommon("cancel")}
             </Button>
           </div>
         </form>
@@ -111,10 +135,10 @@ export function PhoneChange({ currentPhone }: Props) {
 
   return (
     <div className="space-y-2">
-      <Label>Telefón</Label>
+      <Label>{t("phone")}</Label>
       <div className="flex items-center gap-2">
         <Input value={newPhone} disabled className="flex-1" />
-        <span className="text-sm text-emerald-400">✓ overený</span>
+        <span className="text-sm text-emerald-400">✓ {t("phoneVerifiedBadge")}</span>
       </div>
     </div>
   );
@@ -131,6 +155,9 @@ function VerifyStep({
   onCancel: () => void;
   onDone: () => void;
 }) {
+  const t = useTranslations("profile");
+  const tCommon = useTranslations("common");
+  const errorLabel = useErrorLabel();
   const boundConfirm = confirmPhoneChange.bind(null, token, newPhone);
   const [state, formAction, pending] = useActionState(boundConfirm, null);
 
@@ -140,9 +167,9 @@ function VerifyStep({
 
   return (
     <div className="space-y-2 rounded-lg border border-amber-600/40 bg-amber-950/10 p-4">
-      <Label htmlFor="phone-code">Overovací kód</Label>
+      <Label htmlFor="phone-code">{t("phoneVerificationCodeLabel")}</Label>
       <p className="text-xs text-zinc-500">
-        SMS s 6-miestnym kódom bola odoslaná na {newPhone}. Kód platí 10 minút.
+        {t("phoneSmsSent", { phone: newPhone })}
       </p>
       <form action={formAction} className="space-y-2">
         <Input
@@ -163,10 +190,10 @@ function VerifyStep({
             disabled={pending}
             className="bg-amber-600 text-zinc-950 hover:bg-amber-500"
           >
-            {pending ? "..." : "Potvrdiť"}
+            {pending ? "..." : tCommon("confirm")}
           </Button>
           <Button type="button" variant="outline" onClick={onCancel}>
-            Zrušiť
+            {tCommon("cancel")}
           </Button>
         </div>
       </form>

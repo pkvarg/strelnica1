@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -34,17 +34,18 @@ const statusColors: Record<string, string> = {
 
 export function UserTable({ users }: { users: User[] }) {
   const locale = useLocale();
+  const t = useTranslations("admin");
 
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Meno</TableHead>
-          <TableHead>E-mail</TableHead>
-          <TableHead>Telefón</TableHead>
-          <TableHead>Rola</TableHead>
-          <TableHead>Stav</TableHead>
-          <TableHead>Vytvorený</TableHead>
+          <TableHead>{t("columns.name")}</TableHead>
+          <TableHead>{t("columns.email")}</TableHead>
+          <TableHead>{t("columns.phone")}</TableHead>
+          <TableHead>{t("columns.role")}</TableHead>
+          <TableHead>{t("columns.userStatus")}</TableHead>
+          <TableHead>{t("columns.created")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -60,12 +61,12 @@ export function UserTable({ users }: { users: User[] }) {
             </TableCell>
             <TableCell>{user.email}</TableCell>
             <TableCell>{user.phoneE164}</TableCell>
-            <TableCell>{user.role}</TableCell>
+            <TableCell>{t(`role.${user.role}` as "role.member")}</TableCell>
             <TableCell>
               <span
                 className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[user.status] ?? ""}`}
               >
-                {user.status}
+                {t(`userStatus.${user.status}` as "userStatus.active")}
               </span>
             </TableCell>
             <TableCell>

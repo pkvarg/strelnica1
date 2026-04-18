@@ -81,17 +81,17 @@ export default function ProfilePage() {
           <h2 className="text-lg font-semibold">{t("license")}</h2>
           {isVerified ? (
             <span className="rounded-full bg-emerald-900/40 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
-              Overený
+              {t("licenseVerifiedBadge")}
             </span>
           ) : user.zbrojnyPreukazCategory ? (
             <span className="rounded-full bg-amber-900/40 px-2.5 py-0.5 text-xs font-medium text-amber-400">
-              Čaká na overenie
+              {t("licensePendingBadge")}
             </span>
           ) : null}
         </div>
         {isVerified && (
           <p className="text-xs text-zinc-500">
-            Úprava údajov zruší overenie a bude potrebné opätovné overenie správcom.
+            {t("licenseEditResetsVerification")}
           </p>
         )}
         <div className="grid grid-cols-2 gap-4">
@@ -105,7 +105,7 @@ export default function ProfilePage() {
               defaultValue=""
             />
             <p className="text-xs text-zinc-500">
-              {user.zbrojnyPreukazCategory ? "Vyplňte len ak chcete zmeniť" : ""}
+              {user.zbrojnyPreukazCategory ? t("licenseChangeHint") : ""}
             </p>
           </div>
           <div className="space-y-2">

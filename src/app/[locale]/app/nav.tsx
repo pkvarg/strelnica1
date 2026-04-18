@@ -19,6 +19,9 @@ interface AppNavProps {
     bookings: string;
     profile: string;
     statistics: string;
+    roleAdmin: string;
+    roleMember: string;
+    administration: string;
   };
   locale: string;
 }
@@ -63,7 +66,7 @@ export function AppNav({ user, labels, locale }: AppNavProps) {
     <nav className="flex h-screen sticky top-0 w-56 flex-col border-r border-zinc-800 bg-zinc-900 p-4">
       <div className="mb-6 border-b border-zinc-800 pb-4">
         <p className="font-semibold text-zinc-100">{user.name}</p>
-        <p className="text-xs text-zinc-500">{user.role === "admin" ? "Admin" : "Člen"}</p>
+        <p className="text-xs text-zinc-500">{user.role === "admin" ? labels.roleAdmin : labels.roleMember}</p>
       </div>
 
       <div className="flex flex-1 flex-col gap-0.5">
@@ -74,7 +77,7 @@ export function AppNav({ user, labels, locale }: AppNavProps) {
           >
             <span className="flex items-center gap-2">
               <ShieldCheck size={14} />
-              Administrácia
+              {labels.administration}
             </span>
             {pending > 0 && (
               <span className="rounded-full bg-amber-600 px-2 py-0.5 text-xs font-bold text-zinc-950">

@@ -1,13 +1,11 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { acceptConsents } from "./actions";
 import { Button } from "@/components/ui/button";
 
 export default function ConsentPage() {
   const t = useTranslations("invitation");
-  const router = useRouter();
 
   return (
     <div className="flex flex-1 items-center justify-center">
@@ -37,7 +35,6 @@ export default function ConsentPage() {
             const rules = (document.getElementById("rules") as HTMLInputElement)?.checked;
             if (!gdpr || !rules) return;
             await acceptConsents();
-            router.push("/app");
           }}
         >
           {t("activate")}

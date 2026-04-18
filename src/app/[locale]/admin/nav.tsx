@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
 import {
@@ -53,6 +54,7 @@ interface NavGroup {
 
 export function AdminNav({ user, labels, locale }: AdminNavProps) {
   const pathname = usePathname();
+  const t = useTranslations("adminNav");
 
   const groups: NavGroup[] = [
     {
@@ -62,14 +64,14 @@ export function AdminNav({ user, labels, locale }: AdminNavProps) {
       ],
     },
     {
-      title: "Členovia",
+      title: t("groups.members"),
       links: [
         { href: `/${locale}/admin/pouzivatelia`, label: labels.users, icon: Users },
         { href: `/${locale}/admin/clenstvo`, label: labels.membership, icon: CreditCard },
       ],
     },
     {
-      title: "Strelnica",
+      title: t("groups.range"),
       links: [
         { href: `/${locale}/admin/rezervacie`, label: labels.bookings, icon: CalendarCheck },
         { href: `/${locale}/admin/otvaracie-hodiny`, label: labels.openingHours, icon: Clock },
@@ -77,31 +79,31 @@ export function AdminNav({ user, labels, locale }: AdminNavProps) {
       ],
     },
     {
-      title: "Štatistiky",
+      title: t("groups.statistics"),
       links: [
         { href: `/${locale}/admin/statistiky`, label: labels.statistics, icon: BarChart3 },
       ],
     },
     {
-      title: "Systém",
+      title: t("groups.system"),
       links: [
         { href: `/${locale}/admin/audit`, label: labels.audit, icon: ScrollText },
-        { href: `/${locale}/admin/kontakt-log`, label: "Kontakt log", icon: MessageSquare },
-        { href: `/${locale}/admin/suhlasy`, label: "Súhlasy", icon: FileCheck },
-        { href: `/${locale}/admin/rate-limits`, label: "Rate Limits", icon: Shield },
-        { href: `/${locale}/admin/nastavenia`, label: "Nastavenia", icon: Settings },
+        { href: `/${locale}/admin/kontakt-log`, label: t("links.contactLog"), icon: MessageSquare },
+        { href: `/${locale}/admin/suhlasy`, label: t("links.consent"), icon: FileCheck },
+        { href: `/${locale}/admin/rate-limits`, label: t("links.rateLimits"), icon: Shield },
+        { href: `/${locale}/admin/nastavenia`, label: t("links.settings"), icon: Settings },
       ],
     },
     {
-      title: "Danger Zone",
+      title: t("groups.dangerZone"),
       links: [
-        { href: `/${locale}/admin/danger-zone`, label: "Danger Zone", icon: AlertTriangle, danger: true },
+        { href: `/${locale}/admin/danger-zone`, label: t("links.dangerZone"), icon: AlertTriangle, danger: true },
       ],
     },
   ];
 
   const externalLinks = [
-    { href: "https://umami-p00gs00gwcwo00s4k4c4kgg8.pictusweb.com/share/9XzhLLnYeCtWULx9", label: "Analytics" },
+    { href: "https://umami-p00gs00gwcwo00s4k4c4kgg8.pictusweb.com/share/9XzhLLnYeCtWULx9", label: t("links.analytics") },
   ];
 
   return (
@@ -149,7 +151,7 @@ export function AdminNav({ user, labels, locale }: AdminNavProps) {
 
         <div className="mt-4 border-t border-zinc-800 pt-3">
           <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
-            Externé
+            {t("groups.external")}
           </p>
           {externalLinks.map((link) => (
             <a

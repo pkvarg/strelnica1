@@ -85,7 +85,7 @@ export function AddHoursForm({ ranges }: { ranges: Range[] }) {
 
       <Button type="submit" className="mt-4" disabled={isPending || selectedDays.length === 0}>
         {isPending ? "..." : t("add")}
-        {selectedDays.length > 1 && ` (${selectedDays.length} dní)`}
+        {selectedDays.length > 1 && ` ${t("daysSuffix", { count: selectedDays.length })}`}
       </Button>
     </form>
   );

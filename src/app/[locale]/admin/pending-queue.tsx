@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { approveBookingInline, declineBookingInline } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,11 +20,15 @@ interface PendingBooking {
 }
 
 export function PendingQueue({ bookings }: { bookings: PendingBooking[] }) {
+  const tAdmin = useTranslations("admin");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const localeTag = locale === "hu" ? "hu-HU" : "sk-SK";
   const [decliningId, setDecliningId] = useState<string | null>(null);
   const [reason, setReason] = useState("");
 
   if (bookings.length === 0) {
-    return <p className="text-sm text-zinc-500">Žiadne čakajúce žiadosti</p>;
+    return <p className="text-sm text-zinc-500">{tAdmin("noPending")}</p>;
   }
 
   return (
@@ -39,18 +44,18 @@ export function PendingQueue({ bookings }: { bookings: PendingBooking[] }) {
               <p className="mt-1">
                 <span className="font-medium">{b.rangeId}</span>
                 {" — "}
-                {b.startsAt.toLocaleDateString("sk-SK")}
+                {b.startsAt.toLocaleDateString(localeTag)}
                 {" "}
-                {b.startsAt.toLocaleTimeString("sk-SK", { hour: "2-digit", minute: "2-digit" })}
+                {b.startsAt.toLocaleTimeString(localeTag, { hour: "2-digit", minute: "2-digit" })}
                 {" - "}
-                {b.endsAt.toLocaleTimeString("sk-SK", { hour: "2-digit", minute: "2-digit" })}
-                {b.guestCount > 0 && ` (${b.guestCount} hostí)`}
+                {b.endsAt.toLocaleTimeString(localeTag, { hour: "2-digit", minute: "2-digit" })}
+                {b.guestCount > 0 && ` ${tAdmin("guestsWithCount", { count: b.guestCount })}`}
               </p>
               {b.userNote && (
                 <p className="mt-1 text-xs text-zinc-500">{b.userNote}</p>
               )}
               <p className="mt-1 text-xs text-zinc-400">
-                Žiadosť: {b.requestedAt.toLocaleString("sk-SK")}
+                {tAdmin("requestTime")}: {b.requestedAt.toLocaleString(localeTag)}
               </p>
             </div>
 
@@ -59,7 +64,7 @@ export function PendingQueue({ bookings }: { bookings: PendingBooking[] }) {
                 size="sm"
                 onClick={() => approveBookingInline(b.id)}
               >
-                Schváliť
+                {tAdmin("approve")}
               </Button>
               <Button
                 size="sm"
@@ -70,7 +75,7 @@ export function PendingQueue({ bookings }: { bookings: PendingBooking[] }) {
                     : setDecliningId(b.id)
                 }
               >
-                Zamietnuť
+                {tAdmin("decline")}
               </Button>
             </div>
           </div>
@@ -78,7 +83,7 @@ export function PendingQueue({ bookings }: { bookings: PendingBooking[] }) {
           {decliningId === b.id && (
             <div className="mt-3 flex gap-2">
               <Input
-                placeholder="Dôvod zamietnutia"
+                placeholder={tAdmin("declineReason")}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 className="flex-1"
@@ -92,7 +97,7 @@ export function PendingQueue({ bookings }: { bookings: PendingBooking[] }) {
                   setReason("");
                 }}
               >
-                Potvrdiť
+                {tCommon("confirm")}
               </Button>
               <Button
                 size="sm"
@@ -102,7 +107,7 @@ export function PendingQueue({ bookings }: { bookings: PendingBooking[] }) {
                   setReason("");
                 }}
               >
-                Zrušiť
+                {tCommon("cancel")}
               </Button>
             </div>
           )}

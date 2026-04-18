@@ -6,14 +6,16 @@ import { memberships } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { writeAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 
 export async function markMembershipPaid(
   _prev: { error?: string; success?: boolean } | null,
   formData: FormData,
 ) {
+  const t = await getTranslations("membership.errors");
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
-    return { error: "Unauthorized" };
+    return { error: t("unauthorized") };
   }
 
   const userId = formData.get("userId") as string;
@@ -23,7 +25,7 @@ export async function markMembershipPaid(
   const note = (formData.get("note") as string) || null;
 
   if (!userId || !year || !feeAmount || !paymentMethod) {
-    return { error: "All fields are required" };
+    return { error: t("allFieldsRequired") };
   }
 
   const existing = await db
