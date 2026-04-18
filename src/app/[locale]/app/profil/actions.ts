@@ -34,7 +34,6 @@ export async function updateProfile(
     firstName: (formData.get("firstName") as string)?.trim() || before.firstName,
     lastName: (formData.get("lastName") as string)?.trim() || before.lastName,
     birthDate: (formData.get("birthDate") as string) || before.birthDate,
-    birthPlace: (formData.get("birthPlace") as string)?.trim() || before.birthPlace,
     addressStreet: (formData.get("addressStreet") as string)?.trim() || before.addressStreet,
     addressCity: (formData.get("addressCity") as string)?.trim() || before.addressCity,
     addressZip: (formData.get("addressZip") as string)?.trim() || before.addressZip,

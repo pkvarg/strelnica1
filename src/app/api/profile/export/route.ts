@@ -20,7 +20,6 @@ export async function GET() {
       email: users.email,
       phoneE164: users.phoneE164,
       birthDate: users.birthDate,
-      birthPlace: users.birthPlace,
       addressStreet: users.addressStreet,
       addressCity: users.addressCity,
       addressZip: users.addressZip,

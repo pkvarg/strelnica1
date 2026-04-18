@@ -126,8 +126,8 @@ export async function requestBooking(
         )?.token;
         return {
           email: a.email,
-          approveUrl: `${appUrl}/${locale}/admin/decide/${approveToken}`,
-          declineUrl: `${appUrl}/${locale}/admin/decide/${declineToken}`,
+          approveUrl: `${appUrl}/${locale}/admin-decide/${approveToken}`,
+          declineUrl: `${appUrl}/${locale}/admin-decide/${declineToken}`,
         };
       });
 

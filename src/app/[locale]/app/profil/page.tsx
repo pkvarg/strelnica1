@@ -20,7 +20,6 @@ type ProfileData = {
   email: string | null;
   phoneE164: string | null;
   birthDate: string | null;
-  birthPlace: string | null;
   addressStreet: string | null;
   addressCity: string | null;
   addressZip: string | null;

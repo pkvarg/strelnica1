@@ -120,7 +120,6 @@ export default async function UserDetailPage({
           email={user.email}
           phone={user.phoneE164}
           birthDate={user.birthDate}
-          birthPlace={user.birthPlace}
           addressStreet={user.addressStreet}
           addressCity={user.addressCity}
           addressZip={user.addressZip}

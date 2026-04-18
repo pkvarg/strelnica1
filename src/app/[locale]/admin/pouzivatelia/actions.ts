@@ -129,7 +129,6 @@ export async function updateUserAdmin(
   const email = (formData.get("email") as string)?.trim().toLowerCase();
   const phone = (formData.get("phone") as string)?.trim();
   const birthDate = (formData.get("birthDate") as string)?.trim() || null;
-  const birthPlace = (formData.get("birthPlace") as string)?.trim() || null;
   const addressStreet = (formData.get("addressStreet") as string)?.trim() || null;
   const addressCity = (formData.get("addressCity") as string)?.trim() || null;
   const addressZip = (formData.get("addressZip") as string)?.trim() || null;
@@ -177,7 +176,6 @@ export async function updateUserAdmin(
       email,
       phoneE164: phone,
       birthDate,
-      birthPlace,
       addressStreet,
       addressCity,
       addressZip,
@@ -279,7 +277,6 @@ export async function anonymizeUser(userId: string) {
       firstName: t("firstName"),
       lastName: t("lastName"),
       birthDate: null,
-      birthPlace: null,
       addressStreet: null,
       addressCity: null,
       addressZip: null,

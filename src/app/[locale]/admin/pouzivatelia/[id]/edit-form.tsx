@@ -20,7 +20,6 @@ interface EditUserFormProps {
   email: string;
   phone: string;
   birthDate: string | null;
-  birthPlace: string | null;
   addressStreet: string | null;
   addressCity: string | null;
   addressZip: string | null;
@@ -45,7 +44,6 @@ export function EditUserForm(props: EditUserFormProps) {
     email: props.email,
     phone: props.phone,
     birthDate: props.birthDate ?? "",
-    birthPlace: props.birthPlace ?? "",
     addressStreet: props.addressStreet ?? "",
     addressCity: props.addressCity ?? "",
     addressZip: props.addressZip ?? "",
@@ -126,16 +124,6 @@ export function EditUserForm(props: EditUserFormProps) {
               className={field}
             />
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-zinc-400">{t("user.birthPlace")}</Label>
-            <Input
-              name="birthPlace"
-              value={form.birthPlace}
-              onChange={(e) => set("birthPlace", e.target.value)}
-              className={field}
-            />
-          </div>
-
           <div className="space-y-1.5 sm:col-span-2">
             <Label className="text-zinc-400">{t("user.street")}</Label>
             <Input

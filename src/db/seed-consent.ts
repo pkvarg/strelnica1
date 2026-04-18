@@ -15,7 +15,7 @@ Prevádzkovateľom osobných údajov je prevádzkovateľ strelnice (ďalej len "
 - Meno a priezvisko
 - E-mailová adresa
 - Telefónne číslo
-- Dátum a miesto narodenia
+- Dátum narodenia
 - Adresa bydliska
 - Číslo zbrojného preukazu — uložené v šifrovanej forme (vkladá administrátor pri prvej návšteve)
 - Evidencia zbraní (názov, kaliber, sériové číslo) — sériové číslo uložené v šifrovanej forme
@@ -116,7 +116,7 @@ A személyes adatok kezelője a lőtér üzemeltetője (a továbbiakban "adatkez
 - Vezetéknév és keresztnév
 - E-mail cím
 - Telefonszám
-- Születési dátum és hely
+- Születési dátum
 - Lakcím
 - Fegyvertartási engedély száma — titkosítva tárolva (az első látogatáskor az adminisztrátor rögzíti)
 - Fegyvernyilvántartás (név, kaliber, gyártási szám) — a gyártási szám titkosítva tárolva
