@@ -15,7 +15,6 @@ type PhoneErrorKey =
   | "invalidPhone"
   | "samePhone"
   | "phoneTaken"
-  | "smsDisabled"
   | "sendFailed"
   | "tooManyRequests"
   | "invalidCode"
@@ -28,7 +27,6 @@ const ERROR_KEYS: readonly PhoneErrorKey[] = [
   "invalidPhone",
   "samePhone",
   "phoneTaken",
-  "smsDisabled",
   "sendFailed",
   "tooManyRequests",
   "invalidCode",

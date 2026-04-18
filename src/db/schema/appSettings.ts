@@ -1,4 +1,4 @@
-import { integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { users } from "./users";
 
@@ -6,11 +6,7 @@ export const appSettings = pgTable(
   "app_settings",
   {
     id: integer("id").primaryKey().default(1),
-    smsMode: text("sms_mode", {
-      enum: ["off", "admin_only", "members_only", "all"],
-    })
-      .notNull()
-      .default("all"),
+    reminderSmsEnabled: boolean("reminder_sms_enabled").notNull().default(true),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

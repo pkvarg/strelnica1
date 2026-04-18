@@ -8,12 +8,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PhoneChange } from "./phone-change";
 
-const ZP_CATEGORIES = ["A", "B", "C", "D", "E", "F"] as const;
+type ProfileWeapon = {
+  name: string;
+  calibre: string;
+  serialNumber: string;
+};
+
+type ProfileData = {
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+  phoneE164: string | null;
+  birthDate: string | null;
+  birthPlace: string | null;
+  addressStreet: string | null;
+  addressCity: string | null;
+  addressZip: string | null;
+  addressCountry: string | null;
+  zbrojnyPreukazVerifiedAt: string | null;
+  zbrojnyPreukazNumberSet?: boolean;
+  weapons?: ProfileWeapon[];
+};
 
 export default function ProfilePage() {
   const t = useTranslations("profile");
+  const tWeapons = useTranslations("profile.weapons");
   const [state, formAction, isPending] = useActionState(updateProfile, null);
-  const [user, setUser] = useState<Record<string, string | null> | null>(null);
+  const [user, setUser] = useState<ProfileData | null>(null);
 
   useEffect(() => {
     fetch("/api/profile")
@@ -24,6 +45,7 @@ export default function ProfilePage() {
   if (!user) return <p>{t("title")}...</p>;
 
   const isVerified = !!user.zbrojnyPreukazVerifiedAt;
+  const weapons = user.weapons ?? [];
 
   return (
     <div className="max-w-2xl">
@@ -83,57 +105,39 @@ export default function ProfilePage() {
             <span className="rounded-full bg-emerald-900/40 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
               {t("licenseVerifiedBadge")}
             </span>
-          ) : user.zbrojnyPreukazCategory ? (
-            <span className="rounded-full bg-amber-900/40 px-2.5 py-0.5 text-xs font-medium text-amber-400">
-              {t("licensePendingBadge")}
+          ) : (
+            <span className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs font-medium text-zinc-400">
+              {t("licenseUnverifiedBadge")}
             </span>
-          ) : null}
+          )}
         </div>
-        {isVerified && (
-          <p className="text-xs text-zinc-500">
-            {t("licenseEditResetsVerification")}
-          </p>
+        <p className="text-xs text-zinc-500">{t("licenseReadOnlyHint")}</p>
+
+        <h2 className="pt-4 text-lg font-semibold">{tWeapons("title")}</h2>
+        {weapons.length === 0 ? (
+          <p className="text-sm text-zinc-500">{tWeapons("empty")}</p>
+        ) : (
+          <div className="overflow-x-auto rounded-md border border-zinc-800">
+            <table className="w-full text-sm">
+              <thead className="bg-zinc-900/50 text-left text-xs uppercase text-zinc-400">
+                <tr>
+                  <th className="px-3 py-2 font-medium">{tWeapons("columns.name")}</th>
+                  <th className="px-3 py-2 font-medium">{tWeapons("columns.calibre")}</th>
+                  <th className="px-3 py-2 font-medium">{tWeapons("columns.serial")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {weapons.map((w, i) => (
+                  <tr key={i} className="border-t border-zinc-800">
+                    <td className="px-3 py-2">{w.name}</td>
+                    <td className="px-3 py-2">{w.calibre}</td>
+                    <td className="px-3 py-2 font-mono text-xs">{w.serialNumber}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>{t("licenseNumber")}</Label>
-            <Input
-              name="zpNumber"
-              type="password"
-              autoComplete="off"
-              placeholder="napr. AA-000123"
-              defaultValue=""
-            />
-            <p className="text-xs text-zinc-500">
-              {user.zbrojnyPreukazCategory ? t("licenseChangeHint") : ""}
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label>{t("licenseCategory")}</Label>
-            <select
-              name="zpCategory"
-              defaultValue={user.zbrojnyPreukazCategory ?? ""}
-              className="h-8 w-full rounded-lg border border-zinc-700 bg-zinc-800/50 px-2.5 text-sm text-zinc-100 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-            >
-              <option value="">--</option>
-              {ZP_CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2">
-            <Label>{t("licenseIssuedAt")}</Label>
-            <Input name="zpIssuedAt" type="date" defaultValue={user.zbrojnyPreukazIssuedAt ?? ""} />
-          </div>
-          <div className="space-y-2">
-            <Label>{t("licenseExpiresAt")}</Label>
-            <Input name="zpExpiresAt" type="date" defaultValue={user.zbrojnyPreukazExpiresAt ?? ""} />
-          </div>
-          <div className="col-span-2 space-y-2">
-            <Label>{t("licenseAuthority")}</Label>
-            <Input name="zpAuthority" defaultValue={user.zbrojnyPreukazIssuingAuthority ?? ""} />
-          </div>
-        </div>
 
         <div className="flex gap-4 pt-4">
           <Button type="submit" disabled={isPending}>

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { users, bookings, memberships, auditLog } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { users, bookings, memberships, auditLog, userWeapons } from "@/db/schema";
+import { asc, eq } from "drizzle-orm";
+import { decrypt } from "@/lib/encryption";
 
 export async function GET() {
   const session = await auth();
@@ -53,11 +54,30 @@ export async function GET() {
     .from(auditLog)
     .where(eq(auditLog.actorUserId, userId));
 
+  const weaponRows = await db
+    .select({
+      name: userWeapons.name,
+      calibre: userWeapons.calibre,
+      serialNumberEncrypted: userWeapons.serialNumberEncrypted,
+      createdAt: userWeapons.createdAt,
+    })
+    .from(userWeapons)
+    .where(eq(userWeapons.userId, userId))
+    .orderBy(asc(userWeapons.createdAt));
+
+  const userWeaponsOut = weaponRows.map((w) => ({
+    name: w.name,
+    calibre: w.calibre,
+    serialNumber: decrypt(w.serialNumberEncrypted) ?? "",
+    registeredAt: w.createdAt,
+  }));
+
   const exportData = {
     exportedAt: new Date().toISOString(),
     user,
     bookings: userBookings,
     memberships: userMemberships,
+    weapons: userWeaponsOut,
     auditLog: userAudit,
   };
 

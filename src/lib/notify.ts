@@ -1,15 +1,7 @@
 import { db } from "@/db";
 import { notificationsLog } from "@/db/schema";
-import { shouldSendSms, type Audience } from "@/lib/settings";
+import { isReminderSmsEnabled } from "@/lib/settings";
 import crypto from "crypto";
-
-async function phoneIfAllowed(
-  audience: Audience,
-  phone: string | null | undefined,
-): Promise<string | undefined> {
-  if (!phone) return undefined;
-  return (await shouldSendSms(audience)) ? phone : undefined;
-}
 
 const HONO_URL = process.env.NEXT_PUBLIC_HONO_API_URL || "https://hono.pictusweb.sk";
 const API_TOKEN = process.env.STRELNICA_API_TOKEN || "";
@@ -144,15 +136,45 @@ export async function notifyOtpSms(opts: {
   return result;
 }
 
+/**
+ * Admin email OTP for login. Email-only; never SMS. Always on regardless of
+ * the reminder SMS setting — this is part of admin auth, not lifecycle.
+ */
+export async function notifyAdminLoginOtp(opts: {
+  email: string;
+  code: string;
+  locale: string;
+  userId?: string;
+}) {
+  const result = await callHono("admin-otp", {
+    email: opts.email,
+    code: opts.code,
+    locale: opts.locale,
+  });
+
+  await logNotification({
+    channel: "email",
+    to: opts.email,
+    template: "admin_login_otp",
+    locale: opts.locale,
+    userId: opts.userId,
+    status: result.success ? "sent" : "failed",
+    providerResponse: result,
+  });
+
+  return result;
+}
+
 export async function notifyAdminsBookingRequest(opts: {
   memberName: string;
   memberEmail: string;
   rangeId: string;
   date: string;
   time: string;
+  hours: number;
   guestCount: number;
   note: string | null;
-  admins: { email: string; phone: string; approveUrl: string; declineUrl: string }[];
+  admins: { email: string; approveUrl: string; declineUrl: string }[];
   locale: string;
   bookingId: string;
 }) {
@@ -162,12 +184,12 @@ export async function notifyAdminsBookingRequest(opts: {
       endpoint: "booking-request-admin",
       payload: {
         email: admin.email,
-        phone: await phoneIfAllowed("admin", admin.phone),
         memberName: opts.memberName,
         memberEmail: opts.memberEmail,
         rangeId: opts.rangeId,
         date: opts.date,
         time: opts.time,
+        hours: opts.hours,
         guestCount: opts.guestCount,
         note: opts.note,
         approveUrl: admin.approveUrl,
@@ -187,7 +209,6 @@ export async function notifyAdminsBookingRequest(opts: {
 
 export async function notifyMemberBookingApproved(opts: {
   email: string;
-  phone: string;
   memberName: string;
   rangeId: string;
   date: string;
@@ -201,7 +222,6 @@ export async function notifyMemberBookingApproved(opts: {
     endpoint: "booking-approved",
     payload: {
       email: opts.email,
-      phone: await phoneIfAllowed("member", opts.phone),
       memberName: opts.memberName,
       rangeId: opts.rangeId,
       date: opts.date,
@@ -221,7 +241,6 @@ export async function notifyMemberBookingApproved(opts: {
 
 export async function notifyMemberBookingDeclined(opts: {
   email: string;
-  phone: string;
   memberName: string;
   rangeId: string;
   date: string;
@@ -236,7 +255,6 @@ export async function notifyMemberBookingDeclined(opts: {
     endpoint: "booking-declined",
     payload: {
       email: opts.email,
-      phone: await phoneIfAllowed("member", opts.phone),
       memberName: opts.memberName,
       rangeId: opts.rangeId,
       date: opts.date,
@@ -255,6 +273,10 @@ export async function notifyMemberBookingDeclined(opts: {
   });
 }
 
+/**
+ * Booking reminder — the only lifecycle notification that can send SMS,
+ * and only when the `reminder_sms_enabled` admin setting is true.
+ */
 export async function notifyBookingReminder(opts: {
   email: string;
   phone: string;
@@ -268,11 +290,12 @@ export async function notifyBookingReminder(opts: {
   userId: string;
 }) {
   const { enqueueNotify } = await import("@/lib/jobs/notify-send");
+  const smsOn = await isReminderSmsEnabled();
   await enqueueNotify({
     endpoint: "booking-reminder",
     payload: {
       email: opts.email,
-      phone: await phoneIfAllowed("member", opts.phone),
+      phone: smsOn ? opts.phone : undefined,
       memberName: opts.memberName,
       rangeId: opts.rangeId,
       date: opts.date,
@@ -320,7 +343,6 @@ export async function notifyPasswordReset(opts: {
 
 export async function notifyMemberBookingCancelled(opts: {
   email: string;
-  phone: string;
   memberName: string;
   rangeId: string;
   date: string;
@@ -335,7 +357,6 @@ export async function notifyMemberBookingCancelled(opts: {
     endpoint: "booking-cancelled",
     payload: {
       email: opts.email,
-      phone: await phoneIfAllowed("member", opts.phone),
       memberName: opts.memberName,
       rangeId: opts.rangeId,
       date: opts.date,
@@ -356,7 +377,6 @@ export async function notifyMemberBookingCancelled(opts: {
 
 export async function notifyNoShow(opts: {
   email: string;
-  phone: string;
   memberName: string;
   rangeId: string;
   date: string;
@@ -369,7 +389,6 @@ export async function notifyNoShow(opts: {
     endpoint: "no-show",
     payload: {
       email: opts.email,
-      phone: await phoneIfAllowed("member", opts.phone),
       memberName: opts.memberName,
       rangeId: opts.rangeId,
       date: opts.date,
@@ -386,37 +405,8 @@ export async function notifyNoShow(opts: {
   });
 }
 
-export async function notifyLicenseExpiring(opts: {
-  email: string;
-  phone: string;
-  memberName: string;
-  daysLeft: number;
-  locale: string;
-  userId: string;
-}) {
-  const { enqueueNotify } = await import("@/lib/jobs/notify-send");
-  await enqueueNotify({
-    endpoint: "license-expiring",
-    payload: {
-      email: opts.email,
-      phone: await phoneIfAllowed("member", opts.phone),
-      memberName: opts.memberName,
-      daysLeft: opts.daysLeft,
-      locale: opts.locale,
-    },
-    log: {
-      channel: "email",
-      to: opts.email,
-      template: "license_expiring",
-      locale: opts.locale,
-      userId: opts.userId,
-    },
-  });
-}
-
 export async function notifyMembershipReminder(opts: {
   email: string;
-  phone: string;
   memberName: string;
   year: number;
   locale: string;
@@ -427,7 +417,6 @@ export async function notifyMembershipReminder(opts: {
     endpoint: "membership-reminder",
     payload: {
       email: opts.email,
-      phone: await phoneIfAllowed("member", opts.phone),
       memberName: opts.memberName,
       year: opts.year,
       locale: opts.locale,

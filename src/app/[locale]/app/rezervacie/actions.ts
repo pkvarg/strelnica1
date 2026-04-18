@@ -104,7 +104,7 @@ export async function requestBooking(
         .limit(1);
 
       const adminRows = await db
-        .select({ id: users.id, email: users.email, phoneE164: users.phoneE164 })
+        .select({ id: users.id, email: users.email })
         .from(users)
         .where(and(eq(users.role, "admin"), eq(users.status, "active")));
 
@@ -120,7 +120,6 @@ export async function requestBooking(
         )?.token;
         return {
           email: a.email,
-          phone: a.phoneE164,
           approveUrl: `${appUrl}/${locale}/admin/decide/${approveToken}`,
           declineUrl: `${appUrl}/${locale}/admin/decide/${declineToken}`,
         };
@@ -132,6 +131,7 @@ export async function requestBooking(
         rangeId,
         date: fmtDate(startsAt),
         time: fmtTime(startsAt),
+        hours,
         guestCount,
         note: userNote,
         admins,
@@ -153,7 +153,7 @@ export async function requestBooking(
   }
 }
 
-export async function cancelBooking(bookingId: string) {
+export async function cancelBooking(bookingId: string, reason?: string) {
   const session = await auth();
   if (!session?.user) throw new Error("Unauthorized");
 
@@ -174,9 +174,17 @@ export async function cancelBooking(bookingId: string) {
     throw new Error("Cannot cancel this booking");
   }
 
+  const cancellationReason = reason?.trim().slice(0, 500) || null;
+  const cancelledAt = new Date();
+
   await db
     .update(bookings)
-    .set({ status: "cancelled" })
+    .set({
+      status: "cancelled",
+      cancellationReason,
+      cancelledBy: "member",
+      cancelledAt,
+    })
     .where(eq(bookings.id, bookingId));
 
   await writeAudit({
@@ -185,7 +193,7 @@ export async function cancelBooking(bookingId: string) {
     entityType: "booking",
     entityId: bookingId,
     before: { status: booking.status },
-    after: { status: "cancelled" },
+    after: { status: "cancelled", cancellationReason, cancelledBy: "member" },
   });
 
   try {
@@ -194,7 +202,6 @@ export async function cancelBooking(bookingId: string) {
         firstName: users.firstName,
         lastName: users.lastName,
         email: users.email,
-        phoneE164: users.phoneE164,
         locale: users.locale,
       })
       .from(users)
@@ -204,7 +211,6 @@ export async function cancelBooking(bookingId: string) {
     if (member) {
       await notifyMemberBookingCancelled({
         email: member.email,
-        phone: member.phoneE164,
         memberName: `${member.firstName} ${member.lastName}`,
         rangeId: booking.rangeId,
         date: fmtDate(booking.startsAt),

@@ -175,7 +175,11 @@ export default async function DangerZonePage() {
         </p>
         <AdminsRowsTable
           admins={adminRows.map((a) => ({
-            ...a,
+            id: a.id,
+            firstName: a.firstName,
+            lastName: a.lastName,
+            email: a.email,
+            status: a.status,
             isSelf: a.id === session.user.id,
           }))}
         />

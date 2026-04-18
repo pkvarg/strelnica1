@@ -1,6 +1,6 @@
 import { db } from "@/db";
-import { users, memberships, bookings } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { users, memberships, bookings, userWeapons } from "@/db/schema";
+import { eq, desc, asc } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { decrypt } from "@/lib/encryption";
@@ -9,6 +9,7 @@ import { UserActions } from "./user-actions";
 import { LicenseForm } from "./license-form";
 import { LicenseVerifyButton } from "./license-verify-button";
 import { EditUserForm } from "./edit-form";
+import { WeaponsSection, type AdminWeapon } from "./weapons-section";
 
 export default async function UserDetailPage({
   params,
@@ -27,19 +28,43 @@ export default async function UserDetailPage({
 
   if (!user) notFound();
 
-  // Decrypt zbrojny preukaz number (server-only)
+  // Decrypt zbrojny preukaz number (server-only, admin eyes only)
   const zpNumber = user.zbrojnyPreukazNumberEncrypted
     ? decrypt(user.zbrojnyPreukazNumberEncrypted)
     : null;
 
-  // Check if license expires within 60 days
-  const zpExpiresAt = user.zbrojnyPreukazExpiresAt;
-  const zpExpiringSoon =
-    zpExpiresAt != null &&
-    new Date(zpExpiresAt).getTime() - Date.now() < 60 * 24 * 60 * 60 * 1000 &&
-    new Date(zpExpiresAt).getTime() > Date.now();
-  const zpExpired =
-    zpExpiresAt != null && new Date(zpExpiresAt).getTime() <= Date.now();
+  // Resolve the name of the admin who verified the license (if any)
+  let verifiedByName: string | null = null;
+  if (user.zbrojnyPreukazVerifiedBy) {
+    const [verifier] = await db
+      .select({ firstName: users.firstName, lastName: users.lastName })
+      .from(users)
+      .where(eq(users.id, user.zbrojnyPreukazVerifiedBy))
+      .limit(1);
+    if (verifier) {
+      verifiedByName = `${verifier.firstName} ${verifier.lastName}`.trim();
+    }
+  }
+
+  // Decrypt weapon serial numbers server-side so they never traverse the
+  // network in ciphertext. Admin-only page, admin-only data.
+  const weaponRows = await db
+    .select({
+      id: userWeapons.id,
+      name: userWeapons.name,
+      calibre: userWeapons.calibre,
+      serialNumberEncrypted: userWeapons.serialNumberEncrypted,
+    })
+    .from(userWeapons)
+    .where(eq(userWeapons.userId, id))
+    .orderBy(asc(userWeapons.createdAt));
+
+  const weapons: AdminWeapon[] = weaponRows.map((w) => ({
+    id: w.id,
+    name: w.name,
+    calibre: w.calibre,
+    serialNumber: decrypt(w.serialNumberEncrypted) ?? "",
+  }));
 
   const userMemberships = await db
     .select()
@@ -105,71 +130,25 @@ export default async function UserDetailPage({
           notesAdmin={user.notesAdmin}
         />
 
-        {/* Zbrojny preukaz — read-only overview */}
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold text-zinc-100">
-                {t("license.title")}
-              </h2>
-              {user.zbrojnyPreukazVerifiedAt ? (
-                <span className="rounded-full bg-emerald-900/40 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
-                  {t("license.verified", { date: fmtDate(user.zbrojnyPreukazVerifiedAt) })}
-                </span>
-              ) : user.zbrojnyPreukazCategory ? (
-                <span className="rounded-full bg-amber-900/40 px-2.5 py-0.5 text-xs font-medium text-amber-400">
-                  {t("license.unverified")}
-                </span>
-              ) : null}
-            </div>
-            {user.zbrojnyPreukazCategory && (
+        {/* Zbrojny preukaz — single admin-only editor */}
+        <div className="space-y-2">
+          <LicenseForm
+            userId={user.id}
+            number={zpNumber}
+            verifiedAt={user.zbrojnyPreukazVerifiedAt}
+            verifiedByName={verifiedByName}
+          />
+          {zpNumber && (
+            <div className="flex justify-end">
               <LicenseVerifyButton
                 userId={user.id}
                 isVerified={!!user.zbrojnyPreukazVerifiedAt}
               />
-            )}
-          </div>
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <dt className="font-medium text-zinc-400">{t("license.category")}</dt>
-            <dd className="text-zinc-200">
-              {user.zbrojnyPreukazCategory ?? "\u2014"}
-            </dd>
-            <dt className="font-medium text-zinc-400">{t("license.number")}</dt>
-            <dd className="text-zinc-200">{zpNumber ?? "\u2014"}</dd>
-            <dt className="font-medium text-zinc-400">{t("license.issuedAt")}</dt>
-            <dd className="text-zinc-200">
-              {user.zbrojnyPreukazIssuedAt ?? "\u2014"}
-            </dd>
-            <dt className="font-medium text-zinc-400">{t("license.expiresAt")}</dt>
-            <dd
-              className={
-                zpExpired
-                  ? "font-semibold text-red-400"
-                  : zpExpiringSoon
-                    ? "font-semibold text-amber-400"
-                    : "text-zinc-200"
-              }
-            >
-              {user.zbrojnyPreukazExpiresAt ?? "\u2014"}
-              {zpExpired && ` ${t("license.expired")}`}
-              {zpExpiringSoon && ` ${t("license.expiringSoon")}`}
-            </dd>
-            <dt className="font-medium text-zinc-400">{t("license.authority")}</dt>
-            <dd className="text-zinc-200">
-              {user.zbrojnyPreukazIssuingAuthority ?? "\u2014"}
-            </dd>
-          </dl>
+            </div>
+          )}
         </div>
 
-        {/* Zbrojny preukaz — edit form */}
-        <LicenseForm
-          userId={user.id}
-          number={zpNumber}
-          category={user.zbrojnyPreukazCategory}
-          issuedAt={user.zbrojnyPreukazIssuedAt}
-          expiresAt={user.zbrojnyPreukazExpiresAt}
-          authority={user.zbrojnyPreukazIssuingAuthority}
-        />
+        <WeaponsSection userId={user.id} weapons={weapons} />
 
         <div>
           <h2 className="text-lg font-semibold">{t("user.memberships")}</h2>

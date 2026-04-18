@@ -65,7 +65,7 @@ export function AdminsRowsTable({ admins }: { admins: AdminRow[] }) {
             <TableHead>{tAdmin("columns.name")}</TableHead>
             <TableHead>{tAdmin("columns.email")}</TableHead>
             <TableHead>{tAdmin("columns.status")}</TableHead>
-            <TableHead className="w-44" />
+            <TableHead className="w-48" />
           </TableRow>
         </TableHeader>
         <TableBody>

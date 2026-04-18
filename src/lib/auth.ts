@@ -26,6 +26,46 @@ declare module "next-auth" {
   }
 }
 
+/**
+ * Shared credential validator. Used by both the credentials provider's
+ * `authorize` callback and by the admin-OTP flow so the "verified password +
+ * eligible user" check lives in exactly one place.
+ */
+export async function validateAdminCredentials(
+  login: string,
+  password: string,
+): Promise<{
+  id: string;
+  email: string;
+  name: string;
+  role: "admin" | "member";
+  status: string;
+  locale: string;
+} | null> {
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(or(eq(users.email, login), eq(users.phoneE164, login)))
+    .limit(1);
+
+  if (!user) return null;
+  if (!user.passwordHash) return null;
+  if (user.status !== "active" && user.status !== "pending_verification")
+    return null;
+
+  const valid = await argon2.verify(user.passwordHash, password);
+  if (!valid) return null;
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: `${user.firstName} ${user.lastName}`,
+    role: user.role as "admin" | "member",
+    status: user.status,
+    locale: user.locale,
+  };
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
@@ -39,28 +79,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (!login || !password) return null;
 
-        const [user] = await db
-          .select()
-          .from(users)
-          .where(or(eq(users.email, login), eq(users.phoneE164, login)))
-          .limit(1);
-
-        if (!user) return null;
-        if (!user.passwordHash) return null;
-        if (user.status !== "active" && user.status !== "pending_verification")
-          return null;
-
-        const valid = await argon2.verify(user.passwordHash, password);
-        if (!valid) return null;
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: `${user.firstName} ${user.lastName}`,
-          role: user.role as "admin" | "member",
-          status: user.status,
-          locale: user.locale,
-        };
+        return await validateAdminCredentials(login, password);
       },
     }),
   ],

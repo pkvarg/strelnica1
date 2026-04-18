@@ -55,7 +55,16 @@
     "loginButton": "Bejelentkezés",
     "forgotPassword": "Elfelejtette jelszavát?",
     "invalidCredentials": "Hibás bejelentkezési adatok",
-    "accountInactive": "A fiókja nem aktív"
+    "accountInactive": "A fiókja nem aktív",
+    "emailOtp": {
+      "title": "Bejelentkezés megerősítése",
+      "sentTo": "A 6-jegyű kódot elküldtük a(z) {email} címre. A kód 10 percig érvényes.",
+      "codeLabel": "Ellenőrző kód",
+      "rememberDevice": "Eszköz megjegyzése 10 napra",
+      "submit": "Megerősítés",
+      "emailOtpInvalid": "Érvénytelen kód, próbálja újra.",
+      "emailOtpLocked": "Túl sok hibás próbálkozás, kezdje újra a bejelentkezést."
+    }
   },
   "invitation": {
     "title": "Meghívó elfogadása",
@@ -86,14 +95,9 @@
     "country": "Ország",
     "license": "Fegyvertartási engedély",
     "licenseNumber": "Engedély száma",
-    "licenseCategory": "Kategória",
-    "licenseIssuedAt": "Kiállítás dátuma",
-    "licenseExpiresAt": "Érvényesség",
-    "licenseAuthority": "Kiállító hatóság",
     "licenseVerifiedBadge": "Ellenőrzött",
-    "licensePendingBadge": "Érvényesítésre vár",
-    "licenseEditResetsVerification": "Az adatok módosítása visszavonja az ellenőrzést, és az adminisztrátornak újra kell hitelesítenie.",
-    "licenseChangeHint": "Csak akkor töltse ki, ha módosítani szeretné",
+    "licenseUnverifiedBadge": "Nem ellenőrzött",
+    "licenseReadOnlyHint": "A fegyvertartási engedély adatait az adminisztrátor kezeli. Az engedély számának módosításához kérjük, forduljon a lőtér üzemeltetőjéhez.",
     "exportData": "Adataim exportálása (GDPR)",
     "updated": "Profil frissítve",
     "phoneChangeButton": "Módosítás",
@@ -107,7 +111,6 @@
       "invalidPhone": "Érvénytelen telefonszám (formátum: +421900123456)",
       "samePhone": "Ugyanazt a telefonszámot adta meg",
       "phoneTaken": "Ezt a telefonszámot már más fiók használja",
-      "smsDisabled": "Az SMS-ellenőrzés ideiglenesen ki van kapcsolva. Keresse fel az adminisztrátort.",
       "sendFailed": "Nem sikerült elküldeni az SMS-t. Próbálja később.",
       "tooManyRequests": "Túl sok próbálkozás, próbálja egy óra múlva",
       "invalidCode": "Érvénytelen kód",
@@ -115,6 +118,15 @@
       "invalidToken": "Érvénytelen kérés",
       "tooManyAttempts": "Túl sok sikertelen próbálkozás",
       "userNotFound": "A felhasználó nem található"
+    },
+    "weapons": {
+      "title": "Fegyvereim",
+      "columns": {
+        "name": "Név",
+        "calibre": "Kaliber",
+        "serial": "Gyártási szám"
+      },
+      "empty": "Nincsenek nyilvántartott fegyverek. Változás esetén keresse fel a lőtér üzemeltetőjét."
     },
     "stats": {
       "visits": "Látogatások",
@@ -219,20 +231,34 @@
     },
     "license": {
       "title": "Fegyvertartási engedély",
-      "category": "Kategória",
       "number": "Engedély száma",
-      "issuedAt": "Kiállítás dátuma",
-      "expiresAt": "Érvényesség",
-      "authority": "Kiállító hatóság",
-      "chooseOption": "-- Válasszon --",
-      "numberPlaceholder": "pl. AA-000123",
-      "authorityPlaceholder": "pl. Pozsonyi Rendőrkapitányság",
+      "numberAdminOnlyHint": "Csak az engedély számát adja meg. Titkosítva tárolódik (AES-256).",
+      "markVerifiedCheckbox": "Ellenőrzöttként jelölés (az admin látta az eredeti engedélyt)",
       "verified": "Ellenőrizve {date}",
+      "verifiedBy": "Ellenőrizve {date} — {admin}",
       "unverified": "Nem ellenőrzött",
-      "expired": "(lejárt)",
-      "expiringSoon": "(hamarosan lejár)",
       "verifyButton": "Engedély ellenőrzése",
       "unverifyButton": "Ellenőrzés visszavonása"
+    },
+    "weapons": {
+      "sectionTitle": "Fegyvernyilvántartás",
+      "addWeapon": "Fegyver hozzáadása",
+      "columns": {
+        "name": "Név",
+        "calibre": "Kaliber",
+        "serial": "Gyártási szám"
+      },
+      "editTitle": "Fegyver szerkesztése",
+      "confirmRemove": "Biztosan eltávolítja ezt a fegyvert a nyilvántartásból?",
+      "namePlaceholder": "pl. Glock 19",
+      "caliberPlaceholder": "pl. 9mm Luger",
+      "serialPlaceholder": "gyártási szám",
+      "addButton": "Hozzáadás",
+      "editButton": "Szerkesztés",
+      "removeButton": "Eltávolítás",
+      "saveButton": "Mentés",
+      "cancelButton": "Mégse",
+      "noWeapons": "Nincsenek fegyverek"
     },
     "decide": {
       "invalidLink": "Érvénytelen hivatkozás",
@@ -274,9 +300,6 @@
       "phoneInUse": "Ezt a telefonszámot már más használja",
       "cannotRemoveSelfAdmin": "Nem vonhatja vissza saját admin szerepét",
       "missingUserId": "Hiányzó felhasználó azonosító",
-      "invalidCategory": "Érvénytelen kategória",
-      "invalidIssuedAtFormat": "Érvénytelen kiállítási dátum formátum",
-      "invalidExpiresAtFormat": "Érvénytelen érvényességi dátum formátum",
       "startEndRequired": "A kezdő és befejező dátum kötelező",
       "requiredFieldsMissing": "Hiányzó kötelező mezők",
       "invalidWeekday": "Érvénytelen hét napja",
@@ -286,7 +309,13 @@
       "bookingNotFound": "A foglalás nem található",
       "bookingAlready": "A foglalás már {status}",
       "tooManyAttempts": "Túl sok próbálkozás",
-      "invalidMode": "Érvénytelen mód"
+      "invalidMode": "Érvénytelen mód",
+      "weaponNotFound": "A fegyver nem található",
+      "weaponInvalid": "Érvénytelen fegyveradatok",
+      "weaponNameRequired": "A fegyver neve kötelező",
+      "weaponCalibreRequired": "A kaliber kötelező",
+      "weaponSerialRequired": "A gyártási szám kötelező",
+      "weaponTooLong": "Néhány mező meghaladja a megengedett hosszt"
     }
   },
   "openingHours": {
@@ -331,6 +360,10 @@
     "submit": "Kérelem küldése",
     "cancel": "Foglalás törlése",
     "cancelConfirm": "Biztosan törölni szeretné ezt a foglalást?",
+    "cancelReasonLabel": "Lemondás oka (nem kötelező)",
+    "cancelReasonPlaceholder": "pl. egészségügyi okok, tervváltozás…",
+    "confirmCancel": "Igen, törölni",
+    "keepBooking": "Mégse",
     "submitted": "Foglalási kérelem elküldve",
     "cancelled": "Foglalás törölve",
     "slotTaken": "Ez az időpont már foglalt",
@@ -545,18 +578,10 @@
   },
   "settings": {
     "title": "Beállítások",
-    "smsTitle": "SMS értesítések",
-    "smsDescription": "Meghatározza, hogy kinek küldünk SMS-t a foglalási eseményeknél. A változtatás azonnal érvénybe lép a következő értesítésnél. Az e-mailek ettől a beállítástól függetlenül mindig kiküldésre kerülnek.",
-    "smsMode": {
-      "allTitle": "Mindenkinek",
-      "allDesc": "Az SMS-ek az adminoknak és a tagoknak is elküldésre kerülnek minden eseménynél (a szokásos e-mailen felül).",
-      "adminOnlyTitle": "Csak adminoknak",
-      "adminOnlyDesc": "SMS-t csak az adminok kapnak (pl. új kérelem). A tagok csak e-mailt kapnak.",
-      "membersOnlyTitle": "Csak tagoknak",
-      "membersOnlyDesc": "SMS-t csak a tagok kapnak (jóváhagyás, emlékeztető, törlés...). Az adminok nem.",
-      "offTitle": "Kikapcsolva",
-      "offDesc": "Nincs lifecycle SMS. Az OTP regisztráció továbbra is aktív."
-    }
+    "reminderSmsTitle": "SMS emlékeztető 5 perccel a foglalás előtt",
+    "reminderSmsDescription": "Az e-mailek mindig elküldésre kerülnek. A többi SMS ki van kapcsolva; SMS-t csak a tagok telefonszám-változtatásakor küldünk.",
+    "reminderSmsEnabled": "SMS emlékeztető bekapcsolva",
+    "reminderSmsDisabled": "SMS emlékeztető kikapcsolva"
   },
   "rateLimits": {
     "title": "Rate Limits",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,24 +8,18 @@ import { Label } from "@/components/ui/label";
 import { updateUserLicense, type LicenseResult } from "../actions";
 import { Shield } from "lucide-react";
 
-const CATEGORIES = ["A", "B", "C", "D", "E", "F"] as const;
-
 interface LicenseFormProps {
   userId: string;
   number: string | null;
-  category: string | null;
-  issuedAt: string | null;
-  expiresAt: string | null;
-  authority: string | null;
+  verifiedAt: Date | null;
+  verifiedByName: string | null;
 }
 
 export function LicenseForm({
   userId,
   number,
-  category,
-  issuedAt,
-  expiresAt,
-  authority,
+  verifiedAt,
+  verifiedByName,
 }: LicenseFormProps) {
   const t = useTranslations("admin.license");
   const tCommon = useTranslations("common");
@@ -34,88 +28,58 @@ export function LicenseForm({
     null,
   );
 
+  const [markVerified, setMarkVerified] = useState(true);
+
+  const isVerified = verifiedAt != null;
+
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-      <div className="mb-4 flex items-center gap-2">
-        <Shield size={18} className="text-amber-500" />
-        <h2 className="text-lg font-semibold text-zinc-100">{t("title")}</h2>
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Shield size={18} className="text-amber-500" />
+          <h2 className="text-lg font-semibold text-zinc-100">{t("title")}</h2>
+        </div>
+        {isVerified ? (
+          <span className="rounded-full bg-emerald-900/40 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
+            {t("verifiedBy", {
+              date: verifiedAt.toISOString().slice(0, 10),
+              admin: verifiedByName ?? "—",
+            })}
+          </span>
+        ) : (
+          <span className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs font-medium text-zinc-400">
+            {t("unverified")}
+          </span>
+        )}
       </div>
 
       <form action={formAction} className="space-y-4">
         <input type="hidden" name="userId" value={userId} />
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="zp-number" className="text-zinc-400">
-              {t("number")}
-            </Label>
-            <Input
-              id="zp-number"
-              name="number"
-              defaultValue={number ?? ""}
-              placeholder={t("numberPlaceholder")}
-              className="border-zinc-700 bg-zinc-800/50 text-zinc-100 placeholder:text-zinc-600"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="zp-category" className="text-zinc-400">
-              {t("category")}
-            </Label>
-            <select
-              id="zp-category"
-              name="category"
-              defaultValue={category ?? ""}
-              className="h-8 w-full rounded-lg border border-zinc-700 bg-zinc-800/50 px-2.5 text-sm text-zinc-100 outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-            >
-              <option value="">{t("chooseOption")}</option>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="zp-issuedAt" className="text-zinc-400">
-              {t("issuedAt")}
-            </Label>
-            <Input
-              id="zp-issuedAt"
-              name="issuedAt"
-              type="date"
-              defaultValue={issuedAt ?? ""}
-              className="border-zinc-700 bg-zinc-800/50 text-zinc-100"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="zp-expiresAt" className="text-zinc-400">
-              {t("expiresAt")}
-            </Label>
-            <Input
-              id="zp-expiresAt"
-              name="expiresAt"
-              type="date"
-              defaultValue={expiresAt ?? ""}
-              className="border-zinc-700 bg-zinc-800/50 text-zinc-100"
-            />
-          </div>
-
-          <div className="space-y-1.5 sm:col-span-2">
-            <Label htmlFor="zp-authority" className="text-zinc-400">
-              {t("authority")}
-            </Label>
-            <Input
-              id="zp-authority"
-              name="authority"
-              defaultValue={authority ?? ""}
-              placeholder={t("authorityPlaceholder")}
-              className="border-zinc-700 bg-zinc-800/50 text-zinc-100 placeholder:text-zinc-600"
-            />
-          </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="zp-number" className="text-zinc-400">
+            {t("number")}
+          </Label>
+          <Input
+            id="zp-number"
+            name="number"
+            defaultValue={number ?? ""}
+            autoComplete="off"
+            className="border-zinc-700 bg-zinc-800/50 text-zinc-100 placeholder:text-zinc-600"
+          />
+          <p className="text-xs text-zinc-500">{t("numberAdminOnlyHint")}</p>
         </div>
+
+        <label className="flex items-center gap-2 text-sm text-zinc-300">
+          <input
+            type="checkbox"
+            name="markVerified"
+            checked={markVerified}
+            onChange={(e) => setMarkVerified(e.target.checked)}
+            className="h-4 w-4 rounded border-zinc-700 bg-zinc-800 text-amber-500 focus:ring-2 focus:ring-amber-500/40"
+          />
+          {t("markVerifiedCheckbox")}
+        </label>
 
         {state?.error && (
           <p className="text-sm text-red-400">{state.error}</p>

@@ -1,10 +1,10 @@
 import { getTranslations } from "next-intl/server";
-import { getSmsMode } from "@/lib/settings";
-import { SmsModeForm } from "./sms-mode-form";
+import { isReminderSmsEnabled } from "@/lib/settings";
+import { ReminderSmsForm } from "./reminder-sms-form";
 import { Settings } from "lucide-react";
 
 export default async function AdminSettingsPage() {
-  const smsMode = await getSmsMode();
+  const enabled = await isReminderSmsEnabled();
   const t = await getTranslations("settings");
 
   return (
@@ -15,13 +15,15 @@ export default async function AdminSettingsPage() {
       </div>
 
       <section className="mt-8">
-        <h2 className="text-lg font-semibold text-zinc-100">{t("smsTitle")}</h2>
+        <h2 className="text-lg font-semibold text-zinc-100">
+          {t("reminderSmsTitle")}
+        </h2>
         <p className="mt-1 text-sm text-zinc-400">
-          {t("smsDescription")}
+          {t("reminderSmsDescription")}
         </p>
 
         <div className="mt-4">
-          <SmsModeForm current={smsMode} />
+          <ReminderSmsForm current={enabled} />
         </div>
       </section>
     </div>

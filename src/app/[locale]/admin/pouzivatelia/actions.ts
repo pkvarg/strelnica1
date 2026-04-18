@@ -2,7 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { users, userWeapons } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { generateToken, hashToken } from "@/lib/tokens";
 import { encrypt } from "@/lib/encryption";
@@ -266,6 +266,11 @@ export async function anonymizeUser(userId: string) {
 
   if (!before) throw new Error("User not found");
 
+  // Remove weapon registry entries as part of anonymisation. The FK is
+  // `on delete cascade` for the case of a hard user delete, but since we
+  // only update the user row in place here, we must delete weapons explicitly.
+  await db.delete(userWeapons).where(eq(userWeapons.userId, userId));
+
   await db
     .update(users)
     .set({
@@ -279,13 +284,9 @@ export async function anonymizeUser(userId: string) {
       addressCity: null,
       addressZip: null,
       zbrojnyPreukazNumberEncrypted: null,
-      zbrojnyPreukazCategory: null,
-      zbrojnyPreukazIssuedAt: null,
-      zbrojnyPreukazExpiresAt: null,
-      zbrojnyPreukazIssuingAuthority: null,
+      zbrojnyPreukazVerifiedAt: null,
+      zbrojnyPreukazVerifiedBy: null,
       passwordHash: null,
-      totpSecretEncrypted: null,
-      totpEnabledAt: null,
       notesAdmin: null,
       status: "anonymized",
       anonymizedAt: new Date(),
@@ -304,16 +305,13 @@ export async function anonymizeUser(userId: string) {
       lastName: before.lastName,
       status: before.status,
     },
-    after: { status: "anonymized" },
+    after: { status: "anonymized", weaponsCleared: true },
   });
 
   revalidatePath("/admin/pouzivatelia");
 }
 
 // --- Zbrojny preukaz (firearms license) ---
-
-const VALID_CATEGORIES = ["A", "B", "C", "D", "E", "F"] as const;
-type ZPCategory = (typeof VALID_CATEGORIES)[number];
 
 export interface LicenseResult {
   error?: string;
@@ -334,38 +332,14 @@ export async function updateUserLicense(
   if (!userId) return { error: t("missingUserId") };
 
   const number = (formData.get("number") as string)?.trim() || null;
-  const categoryRaw = (formData.get("category") as string)?.trim() || null;
-  const issuedAtRaw = (formData.get("issuedAt") as string)?.trim() || null;
-  const expiresAtRaw = (formData.get("expiresAt") as string)?.trim() || null;
-  const authority = (formData.get("authority") as string)?.trim() || null;
-
-  // Validate category
-  const category =
-    categoryRaw && VALID_CATEGORIES.includes(categoryRaw as ZPCategory)
-      ? (categoryRaw as ZPCategory)
-      : null;
-
-  if (categoryRaw && !category) {
-    return { error: t("invalidCategory") };
-  }
-
-  // Validate dates (basic ISO date check)
-  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-  if (issuedAtRaw && !dateRegex.test(issuedAtRaw)) {
-    return { error: t("invalidIssuedAtFormat") };
-  }
-  if (expiresAtRaw && !dateRegex.test(expiresAtRaw)) {
-    return { error: t("invalidExpiresAtFormat") };
-  }
+  const markVerified = formData.get("markVerified") === "on";
 
   // Fetch current record for audit diff
   const [before] = await db
     .select({
       zbrojnyPreukazNumberEncrypted: users.zbrojnyPreukazNumberEncrypted,
-      zbrojnyPreukazCategory: users.zbrojnyPreukazCategory,
-      zbrojnyPreukazIssuedAt: users.zbrojnyPreukazIssuedAt,
-      zbrojnyPreukazExpiresAt: users.zbrojnyPreukazExpiresAt,
-      zbrojnyPreukazIssuingAuthority: users.zbrojnyPreukazIssuingAuthority,
+      zbrojnyPreukazVerifiedAt: users.zbrojnyPreukazVerifiedAt,
+      zbrojnyPreukazVerifiedBy: users.zbrojnyPreukazVerifiedBy,
     })
     .from(users)
     .where(eq(users.id, userId))
@@ -373,46 +347,60 @@ export async function updateUserLicense(
 
   if (!before) return { error: t("userNotFound") };
 
-  // Encrypt the license number if provided
+  // Encrypt the license number if provided. Note: encryption is non-deterministic
+  // (AES-GCM with random IV), so ciphertexts for the same plaintext differ —
+  // we therefore cannot detect "number changed" by comparing ciphertexts.
+  // Instead we treat any non-empty submission as an authoritative write.
   const encryptedNumber = number ? encrypt(number) : null;
+
+  const now = new Date();
+  const hadNumberBefore = before.zbrojnyPreukazNumberEncrypted != null;
+
+  // Verification handling:
+  // - If admin checks "markVerified", set verification to now / this admin.
+  // - Else, if a number was written that wasn't there before, clear verification
+  //   so the pairing (who/when verified which number) stays honest.
+  // - Else preserve existing verification (e.g. admin only re-saves without change).
+  let zbrojnyPreukazVerifiedAt: Date | null = before.zbrojnyPreukazVerifiedAt;
+  let zbrojnyPreukazVerifiedBy: string | null = before.zbrojnyPreukazVerifiedBy;
+
+  if (markVerified && encryptedNumber != null) {
+    zbrojnyPreukazVerifiedAt = now;
+    zbrojnyPreukazVerifiedBy = session.user.id;
+  } else if (encryptedNumber != null && !hadNumberBefore) {
+    // New number added without verification flag -> unverified until admin verifies
+    zbrojnyPreukazVerifiedAt = null;
+    zbrojnyPreukazVerifiedBy = null;
+  } else if (encryptedNumber == null && hadNumberBefore) {
+    // Number cleared -> verification no longer meaningful
+    zbrojnyPreukazVerifiedAt = null;
+    zbrojnyPreukazVerifiedBy = null;
+  }
 
   await db
     .update(users)
     .set({
       zbrojnyPreukazNumberEncrypted: encryptedNumber,
-      zbrojnyPreukazCategory: category,
-      zbrojnyPreukazIssuedAt: issuedAtRaw,
-      zbrojnyPreukazExpiresAt: expiresAtRaw,
-      zbrojnyPreukazIssuingAuthority: authority,
-      updatedAt: new Date(),
+      zbrojnyPreukazVerifiedAt,
+      zbrojnyPreukazVerifiedBy,
+      updatedAt: now,
     })
     .where(eq(users.id, userId));
 
-  // Audit log -- do NOT log the actual license number
-  const numberChanged =
-    (before.zbrojnyPreukazNumberEncrypted == null) !== (encryptedNumber == null) ||
-    (before.zbrojnyPreukazNumberEncrypted != null && encryptedNumber != null &&
-      before.zbrojnyPreukazNumberEncrypted !== encryptedNumber);
-
+  // Audit log -- do NOT log the actual license number, only booleans.
   await writeAudit({
     actorUserId: session.user.id,
     action: "license_update",
     entityType: "user",
     entityId: userId,
     before: {
-      numberSet: before.zbrojnyPreukazNumberEncrypted != null,
-      category: before.zbrojnyPreukazCategory,
-      issuedAt: before.zbrojnyPreukazIssuedAt,
-      expiresAt: before.zbrojnyPreukazExpiresAt,
-      authority: before.zbrojnyPreukazIssuingAuthority,
+      numberSet: hadNumberBefore,
+      verified: before.zbrojnyPreukazVerifiedAt != null,
     },
     after: {
-      numberChanged,
       numberSet: encryptedNumber != null,
-      category,
-      issuedAt: issuedAtRaw,
-      expiresAt: expiresAtRaw,
-      authority,
+      verified: zbrojnyPreukazVerifiedAt != null,
+      markVerified,
     },
   });
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 
@@ -79,9 +80,26 @@ function isToday(dateStr: string): boolean {
   return dateStr === new Date().toISOString().split("T")[0];
 }
 
+function buildBookingHref(
+  locale: string,
+  isAuthenticated: boolean,
+  rangeId: string,
+  date: string,
+  startTime?: string,
+): string {
+  const params = new URLSearchParams({ rangeId, date });
+  if (startTime) params.set("startTime", startTime);
+  const target = `/${locale}/app/rezervacie/nova?${params.toString()}`;
+  if (isAuthenticated) return target;
+  const loginUrl = `/${locale}/prihlasenie?callbackUrl=${encodeURIComponent(target)}`;
+  return loginUrl;
+}
+
 export function AvailabilityCalendar() {
   const t = useTranslations("calendar");
   const locale = useLocale();
+  const { status } = useSession();
+  const isAuthenticated = status === "authenticated";
 
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
@@ -224,7 +242,14 @@ export function AvailabilityCalendar() {
                       </td>
                       {day.ranges.map((dr) => (
                         <td key={dr.rangeId} className="px-4 py-3">
-                          <DayCell dr={dr} date={day.date} locale={locale} past={false} t={t} />
+                          <DayCell
+                            dr={dr}
+                            date={day.date}
+                            locale={locale}
+                            past={false}
+                            t={t}
+                            isAuthenticated={isAuthenticated}
+                          />
                         </td>
                       ))}
                     </tr>
@@ -245,9 +270,10 @@ interface DayCellProps {
   locale: string;
   past: boolean;
   t: ReturnType<typeof useTranslations>;
+  isAuthenticated: boolean;
 }
 
-function DayCell({ dr, date, locale, past, t }: DayCellProps) {
+function DayCell({ dr, date, locale, past, t, isAuthenticated }: DayCellProps) {
   if (!dr.open) {
     const reason =
       dr.closed && (locale === "hu" ? dr.closureReasonHu : dr.closureReasonSk);
@@ -270,7 +296,7 @@ function DayCell({ dr, date, locale, past, t }: DayCellProps) {
     }
     return (
       <Link
-        href={`/${locale}/prihlasenie`}
+        href={buildBookingHref(locale, isAuthenticated, dr.rangeId, date)}
         className="inline-block rounded bg-emerald-600/15 px-2 py-0.5 text-xs font-medium text-emerald-400 ring-1 ring-emerald-600/30 transition-colors hover:bg-emerald-600/25 hover:text-emerald-300"
       >
         {t("available")}
@@ -291,7 +317,7 @@ function DayCell({ dr, date, locale, past, t }: DayCellProps) {
       {freeSlots.map((s) => (
         <Link
           key={s}
-          href={past ? "#" : `/${locale}/prihlasenie`}
+          href={past ? "#" : buildBookingHref(locale, isAuthenticated, dr.rangeId, date, s)}
           aria-disabled={past}
           className={
             past

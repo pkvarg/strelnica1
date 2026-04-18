@@ -23,7 +23,6 @@ export async function registerNoShowHandler(boss: PgBoss) {
           firstName: users.firstName,
           lastName: users.lastName,
           email: users.email,
-          phone: users.phoneE164,
           locale: users.locale,
         })
         .from(bookings)
@@ -40,7 +39,6 @@ export async function registerNoShowHandler(boss: PgBoss) {
 
       await notifyNoShow({
         email: row.email,
-        phone: row.phone,
         memberName: `${row.firstName} ${row.lastName}`,
         rangeId: row.rangeId,
         date: fmtDate(row.startsAt),

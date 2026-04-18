@@ -6,10 +6,8 @@ import { users, verificationCodes } from "@/db/schema";
 import { eq, and, ne } from "drizzle-orm";
 import crypto from "crypto";
 import { writeAudit } from "@/lib/audit";
-import { encrypt } from "@/lib/encryption";
 import { revalidatePath } from "next/cache";
 import { rateLimit } from "@/lib/rate-limit";
-import { shouldSendSms } from "@/lib/settings";
 import { callHono } from "@/lib/notify";
 import { generateToken, hashToken } from "@/lib/tokens";
 
@@ -31,6 +29,7 @@ export async function updateProfile(
 
   if (!before) return { error: "User not found" };
 
+  // Members can only edit their own personal info. License data is admin-only.
   const patch = {
     firstName: (formData.get("firstName") as string)?.trim() || before.firstName,
     lastName: (formData.get("lastName") as string)?.trim() || before.lastName,
@@ -43,33 +42,9 @@ export async function updateProfile(
     updatedAt: new Date(),
   };
 
-  // License fields — member can edit, but editing resets verification
-  const zpNumber = (formData.get("zpNumber") as string)?.trim() || null;
-  const zpCategory = (formData.get("zpCategory") as string)?.trim() || null;
-  const zpIssuedAt = (formData.get("zpIssuedAt") as string)?.trim() || null;
-  const zpExpiresAt = (formData.get("zpExpiresAt") as string)?.trim() || null;
-  const zpAuthority = (formData.get("zpAuthority") as string)?.trim() || null;
-
-  const licenseChanged =
-    zpNumber !== null || zpCategory !== null || zpIssuedAt !== null ||
-    zpExpiresAt !== null || zpAuthority !== null;
-
-  const licensePatch = licenseChanged
-    ? {
-        zbrojnyPreukazNumberEncrypted: zpNumber ? encrypt(zpNumber) : before.zbrojnyPreukazNumberEncrypted,
-        zbrojnyPreukazCategory: zpCategory || before.zbrojnyPreukazCategory,
-        zbrojnyPreukazIssuedAt: zpIssuedAt || before.zbrojnyPreukazIssuedAt,
-        zbrojnyPreukazExpiresAt: zpExpiresAt || before.zbrojnyPreukazExpiresAt,
-        zbrojnyPreukazIssuingAuthority: zpAuthority || before.zbrojnyPreukazIssuingAuthority,
-        // Reset verification when member edits license data
-        zbrojnyPreukazVerifiedAt: null as Date | null,
-        zbrojnyPreukazVerifiedBy: null as string | null,
-      }
-    : {};
-
   await db
     .update(users)
-    .set({ ...patch, ...licensePatch })
+    .set(patch)
     .where(eq(users.id, session.user.id));
 
   await writeAudit({
@@ -84,7 +59,6 @@ export async function updateProfile(
     after: {
       firstName: patch.firstName,
       lastName: patch.lastName,
-      licenseEdited: licenseChanged,
     },
   });
 
@@ -119,16 +93,13 @@ export async function requestPhoneChange(
   if (!allowed) return { error: "tooManyRequests" };
 
   const [current] = await db
-    .select({ phoneE164: users.phoneE164, role: users.role })
+    .select({ phoneE164: users.phoneE164 })
     .from(users)
     .where(eq(users.id, session.user.id))
     .limit(1);
 
   if (!current) return { error: "userNotFound" };
   if (current.phoneE164 === rawPhone) return { error: "samePhone" };
-
-  const audience = current.role === "admin" ? "admin" : "member";
-  if (!(await shouldSendSms(audience))) return { error: "smsDisabled" };
 
   const [taken] = await db
     .select({ id: users.id })

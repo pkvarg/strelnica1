@@ -1,14 +1,15 @@
 "use server";
 
 import { auth } from "@/lib/auth";
-import { getSmsMode, setSmsMode, type SmsMode } from "@/lib/settings";
+import {
+  isReminderSmsEnabled,
+  setReminderSmsEnabled,
+} from "@/lib/settings";
 import { writeAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 
-const VALID_MODES: SmsMode[] = ["off", "admin_only", "members_only", "all"];
-
-export async function updateSmsMode(
+export async function updateReminderSmsEnabled(
   _prev: { error?: string; success?: boolean } | null,
   formData: FormData,
 ) {
@@ -18,25 +19,22 @@ export async function updateSmsMode(
     return { error: t("unauthorized") };
   }
 
-  const mode = formData.get("smsMode") as string;
-  if (!VALID_MODES.includes(mode as SmsMode)) {
-    return { error: t("invalidMode") };
-  }
+  const next = formData.get("reminderSmsEnabled") === "1";
+  const before = await isReminderSmsEnabled();
 
-  const before = await getSmsMode();
-  if (before === mode) {
+  if (before === next) {
     return { success: true };
   }
 
-  await setSmsMode(mode as SmsMode, session.user.id);
+  await setReminderSmsEnabled(next, session.user.id);
 
   await writeAudit({
     actorUserId: session.user.id,
     action: "update_settings",
     entityType: "app_settings",
     entityId: "1",
-    before: { smsMode: before },
-    after: { smsMode: mode },
+    before: { reminderSmsEnabled: before },
+    after: { reminderSmsEnabled: next },
   });
 
   revalidatePath("/admin/nastavenia");

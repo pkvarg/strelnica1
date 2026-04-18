@@ -84,7 +84,6 @@ async function notifyMemberAfterInlineDecision(
       firstName: users.firstName,
       lastName: users.lastName,
       email: users.email,
-      phone: users.phoneE164,
       locale: users.locale,
     })
     .from(bookings)
@@ -96,7 +95,6 @@ async function notifyMemberAfterInlineDecision(
 
   const common = {
     email: row.email,
-    phone: row.phone,
     memberName: `${row.firstName} ${row.lastName}`,
     rangeId: row.rangeId,
     date: fmtDate(row.startsAt),

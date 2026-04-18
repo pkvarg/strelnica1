@@ -4,7 +4,6 @@ import { registerBookingReminderHandler } from "./booking-reminder";
 import { registerNoShowHandler } from "./booking-noshow";
 import { registerAutoCompleteHandler } from "./booking-autocomplete";
 import { registerRetentionSweepHandler, scheduleRetentionSweep } from "./retention-sweep";
-import { registerLicenseExpiryHandler, scheduleLicenseExpiry } from "./license-expiry";
 import {
   registerMembershipRolloverHandler,
   registerMembershipReminderHandler,
@@ -24,12 +23,10 @@ export async function registerAllJobs() {
   await registerNoShowHandler(boss);
   await registerAutoCompleteHandler(boss);
   await registerRetentionSweepHandler(boss);
-  await registerLicenseExpiryHandler(boss);
   await registerMembershipRolloverHandler(boss);
   await registerMembershipReminderHandler(boss);
 
   await scheduleRetentionSweep(boss);
-  await scheduleLicenseExpiry(boss);
   await scheduleMembershipCrons(boss);
 
   registered = true;

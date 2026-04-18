@@ -2,6 +2,7 @@
 
 import { useTranslations, useLocale } from "next-intl";
 import { useActionState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { loginAction } from "./actions";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,8 @@ import { Label } from "@/components/ui/label";
 export default function LoginPage() {
   const t = useTranslations("auth");
   const locale = useLocale();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") ?? "";
   const [state, formAction, isPending] = useActionState(loginAction, null);
 
   return (
@@ -22,6 +25,7 @@ export default function LoginPage() {
         </div>
 
         <form action={formAction} className="space-y-4">
+          <input type="hidden" name="callbackUrl" value={callbackUrl} />
           <div className="space-y-2">
             <Label htmlFor="login">{t("emailOrPhone")}</Label>
             <Input

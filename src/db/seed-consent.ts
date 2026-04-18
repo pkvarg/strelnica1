@@ -17,7 +17,8 @@ Prevádzkovateľom osobných údajov je prevádzkovateľ strelnice (ďalej len "
 - Telefónne číslo
 - Dátum a miesto narodenia
 - Adresa bydliska
-- Údaje zbrojného preukazu (číslo, kategória, dátum vydania, platnosť, vydávajúci orgán) — uložené v šifrovanej forme
+- Číslo zbrojného preukazu — uložené v šifrovanej forme (vkladá administrátor pri prvej návšteve)
+- Evidencia zbraní (názov, kaliber, sériové číslo) — sériové číslo uložené v šifrovanej forme
 - Údaje o členských poplatkoch
 - História rezervácií a návštev strelnice
 
@@ -52,7 +53,8 @@ Prevádzkovateľom osobných údajov je prevádzkovateľ strelnice (ďalej len "
 |---|---|---|
 | Členské poplatky a faktúry | 10 rokov | Zákon o účtovníctve |
 | Evidencia rezervácií a návštev | 3–5 rokov | Prevádzkový poriadok + zákon o zbraniach |
-| Údaje zbrojného preukazu | Trvanie členstva + 3 roky | Minimalizácia GDPR |
+| Číslo zbrojného preukazu | Trvanie členstva + 3 roky | Minimalizácia GDPR |
+| Evidencia zbraní | Trvanie členstva + 3 roky | Zákon o zbraniach |
 | Meno, adresa, dátum narodenia | Trvanie členstva + 3 roky | Minimalizácia GDPR |
 | Záznamy o udelení súhlasu | Trvanie členstva + 4 roky | Obrana právnych nárokov |
 | Kontaktné správy | 1 rok | Minimalizácia |
@@ -84,7 +86,8 @@ Ako člen môžete požiadať o anonymizáciu vášho účtu. Po potvrdení admi
 ## 8. Bezpečnosť údajov
 
 - Heslá sú uložené pomocou algoritmu Argon2
-- Údaje zbrojného preukazu sú šifrované (AES-256)
+- Číslo zbrojného preukazu je šifrované (AES-256)
+- Sériové čísla zbraní sú šifrované (AES-256)
 - Komunikácia prebieha cez HTTPS
 - V prípade úniku údajov budete informovaní do 72 hodín
 
@@ -99,7 +102,7 @@ Ako člen môžete požiadať o anonymizáciu vášho účtu. Po potvrdení admi
 - Zákon č. 190/2003 Z.z. o strelných zbraniach a strelive
 - Zákon č. 431/2002 Z.z. o účtovníctve
 
-Posledná aktualizácia: apríl 2026`;
+Posledná aktualizácia: 18. apríla 2026`;
 
 const gdprHu = `# Adatvédelmi szabályzat (GDPR)
 
@@ -115,7 +118,8 @@ A személyes adatok kezelője a lőtér üzemeltetője (a továbbiakban "adatkez
 - Telefonszám
 - Születési dátum és hely
 - Lakcím
-- Fegyvertartási engedély adatai (szám, kategória, kiállítás dátuma, érvényesség, kiállító hatóság) — titkosítva tárolva
+- Fegyvertartási engedély száma — titkosítva tárolva (az első látogatáskor az adminisztrátor rögzíti)
+- Fegyvernyilvántartás (név, kaliber, gyártási szám) — a gyártási szám titkosítva tárolva
 - Tagsági díj adatok
 - Foglalási és látogatási előzmények
 
@@ -150,7 +154,8 @@ A személyes adatok kezelője a lőtér üzemeltetője (a továbbiakban "adatkez
 |---|---|---|
 | Tagsági díjak és számlák | 10 év | Számviteli törvény |
 | Foglalási és látogatási nyilvántartás | 3–5 év | Üzemeltetési szabályzat + fegyvertörvény |
-| Fegyvertartási engedély adatai | Tagság időtartama + 3 év | GDPR minimalizálás |
+| Fegyvertartási engedély száma | Tagság időtartama + 3 év | GDPR minimalizálás |
+| Fegyvernyilvántartás | Tagság időtartama + 3 év | Fegyvertörvény |
 | Név, cím, születési dátum | Tagság időtartama + 3 év | GDPR minimalizálás |
 | Hozzájárulási nyilvántartások | Tagság időtartama + 4 év | Jogos igények védelme |
 | Kapcsolati üzenetek | 1 év | Minimalizálás |
@@ -182,7 +187,8 @@ Tagként kérheti fiókja anonimizálását. Az adminisztrátor jóváhagyása u
 ## 8. Adatbiztonság
 
 - A jelszavakat Argon2 algoritmussal tároljuk
-- A fegyvertartási engedély adatai titkosítottak (AES-256)
+- A fegyvertartási engedély száma titkosítva tárolódik (AES-256)
+- A fegyverek gyártási számai titkosítottak (AES-256)
 - A kommunikáció HTTPS-en keresztül történik
 - Adatszivárgás esetén 72 órán belül értesítjük
 
@@ -197,7 +203,7 @@ Az adatokat EU-beli szervereken tároljuk (Hetzner, Coolify).
 - 190/2003 sz. törvény a lőfegyverekről és lőszerekről
 - 431/2002 sz. törvény a számvitelről
 
-Utolsó frissítés: 2026. április`;
+Utolsó frissítés: 2026. április 18.`;
 
 async function main() {
   const client = postgres(process.env.DATABASE_URL!, { max: 1 });

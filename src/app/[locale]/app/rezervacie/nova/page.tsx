@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { requestBooking } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,13 +72,19 @@ function computeSlots(day: AvailabilityDayRange | undefined): Slot[] {
 export default function NewBookingPage() {
   const t = useTranslations("booking");
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const presetRangeId = searchParams.get("rangeId") ?? "";
+  const presetDate = searchParams.get("date") ?? "";
+  const presetStartTime = searchParams.get("startTime") ?? "";
   const [state, formAction, isPending] = useActionState(requestBooking, null);
   const [ranges, setRanges] = useState<Range[]>([]);
   const [availability, setAvailability] = useState<AvailabilityResponse | null>(null);
 
-  const [rangeId, setRangeId] = useState("");
-  const [date, setDate] = useState("");
-  const [startTime, setStartTime] = useState("09:00");
+  const [rangeId, setRangeId] = useState(presetRangeId);
+  const [date, setDate] = useState(presetDate);
+  const [startTime, setStartTime] = useState(
+    presetStartTime && /^\d{2}:00$/.test(presetStartTime) ? presetStartTime : "09:00",
+  );
 
   useEffect(() => {
     fetch("/api/ranges")

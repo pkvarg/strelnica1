@@ -55,7 +55,16 @@
     "loginButton": "Prihlásiť sa",
     "forgotPassword": "Zabudli ste heslo?",
     "invalidCredentials": "Nesprávne prihlasovacie údaje",
-    "accountInactive": "Váš účet nie je aktívny"
+    "accountInactive": "Váš účet nie je aktívny",
+    "emailOtp": {
+      "title": "Overenie prihlásenia",
+      "sentTo": "Zaslali sme 6-miestny kód na {email}. Platí 10 minút.",
+      "codeLabel": "Overovací kód",
+      "rememberDevice": "Zapamätať toto zariadenie na 10 dní",
+      "submit": "Potvrdiť",
+      "emailOtpInvalid": "Neplatný kód, skúste ešte raz.",
+      "emailOtpLocked": "Priveľa nesprávnych pokusov, začnite znova z prihlásenia."
+    }
   },
   "invitation": {
     "title": "Prijatie pozvánky",
@@ -86,14 +95,9 @@
     "country": "Krajina",
     "license": "Zbrojný preukaz",
     "licenseNumber": "Číslo preukazu",
-    "licenseCategory": "Kategória",
-    "licenseIssuedAt": "Vydaný dňa",
-    "licenseExpiresAt": "Platnosť do",
-    "licenseAuthority": "Vydávajúci orgán",
     "licenseVerifiedBadge": "Overený",
-    "licensePendingBadge": "Čaká na overenie",
-    "licenseEditResetsVerification": "Úprava údajov zruší overenie a bude potrebné opätovné overenie správcom.",
-    "licenseChangeHint": "Vyplňte len ak chcete zmeniť",
+    "licenseUnverifiedBadge": "Neoverený",
+    "licenseReadOnlyHint": "Údaje zbrojného preukazu vedie administrátor. V prípade zmeny čísla preukazu kontaktujte správcu strelnice.",
     "exportData": "Exportovať moje údaje (GDPR)",
     "updated": "Profil bol aktualizovaný",
     "phoneChangeButton": "Zmeniť",
@@ -107,7 +111,6 @@
       "invalidPhone": "Neplatný telefón (formát +421900123456)",
       "samePhone": "Zadali ste rovnaký telefón",
       "phoneTaken": "Tento telefón už používa iný účet",
-      "smsDisabled": "SMS overenie je dočasne vypnuté. Kontaktujte admina.",
       "sendFailed": "Nepodarilo sa odoslať SMS. Skúste neskôr.",
       "tooManyRequests": "Príliš veľa pokusov, skúste o hodinu",
       "invalidCode": "Neplatný kód",
@@ -115,6 +118,15 @@
       "invalidToken": "Neplatná žiadosť",
       "tooManyAttempts": "Príliš veľa nesprávnych pokusov",
       "userNotFound": "Používateľ sa nenašiel"
+    },
+    "weapons": {
+      "title": "Moje zbrane",
+      "columns": {
+        "name": "Názov",
+        "calibre": "Kaliber",
+        "serial": "Výrobné číslo"
+      },
+      "empty": "Žiadne registrované zbrane. V prípade zmeny kontaktujte správcu strelnice."
     },
     "stats": {
       "visits": "Návštevy",
@@ -219,20 +231,34 @@
     },
     "license": {
       "title": "Zbrojný preukaz",
-      "category": "Kategória",
       "number": "Číslo preukazu",
-      "issuedAt": "Vydaný dňa",
-      "expiresAt": "Platnosť do",
-      "authority": "Vydávajúci orgán",
-      "chooseOption": "-- Vyberte --",
-      "numberPlaceholder": "napr. AA-000123",
-      "authorityPlaceholder": "napr. Okresné riaditeľstvo PZ Bratislava",
+      "numberAdminOnlyHint": "Zadajte iba číslo zbrojného preukazu. Ukladá sa šifrovane (AES-256).",
+      "markVerifiedCheckbox": "Označiť ako overené (admin videl originál preukazu)",
       "verified": "Overený {date}",
+      "verifiedBy": "Overený {date} adminom {admin}",
       "unverified": "Neoverený",
-      "expired": "(expirovaný)",
-      "expiringSoon": "(čoskoro expiruje)",
       "verifyButton": "Overiť preukaz",
       "unverifyButton": "Zrušiť overenie"
+    },
+    "weapons": {
+      "sectionTitle": "Evidencia zbraní",
+      "addWeapon": "Pridať zbraň",
+      "columns": {
+        "name": "Názov",
+        "calibre": "Kaliber",
+        "serial": "Výrobné číslo"
+      },
+      "editTitle": "Upraviť zbraň",
+      "confirmRemove": "Naozaj chcete odstrániť túto zbraň z evidencie?",
+      "namePlaceholder": "napr. Glock 19",
+      "caliberPlaceholder": "napr. 9mm Luger",
+      "serialPlaceholder": "výrobné číslo",
+      "addButton": "Pridať",
+      "editButton": "Upraviť",
+      "removeButton": "Odstrániť",
+      "saveButton": "Uložiť",
+      "cancelButton": "Zrušiť",
+      "noWeapons": "Žiadne zbrane"
     },
     "decide": {
       "invalidLink": "Neplatný odkaz",
@@ -274,9 +300,6 @@
       "phoneInUse": "Telefón už používa iný používateľ",
       "cannotRemoveSelfAdmin": "Nemôžete si odobrať svoju admin rolu",
       "missingUserId": "Chýba ID používateľa",
-      "invalidCategory": "Neplatná kategória",
-      "invalidIssuedAtFormat": "Nesprávny formát dátumu vydania",
-      "invalidExpiresAtFormat": "Nesprávny formát dátumu platnosti",
       "startEndRequired": "Dátum začiatku a konca sú povinné",
       "requiredFieldsMissing": "Chýbajú povinné polia",
       "invalidWeekday": "Nesprávny deň v týždni",
@@ -286,7 +309,13 @@
       "bookingNotFound": "Rezervácia nebola nájdená",
       "bookingAlready": "Rezervácia je už {status}",
       "tooManyAttempts": "Priveľa pokusov",
-      "invalidMode": "Neplatný režim"
+      "invalidMode": "Neplatný režim",
+      "weaponNotFound": "Zbraň nebola nájdená",
+      "weaponInvalid": "Neplatné údaje zbrane",
+      "weaponNameRequired": "Názov zbrane je povinný",
+      "weaponCalibreRequired": "Kaliber je povinný",
+      "weaponSerialRequired": "Výrobné číslo je povinné",
+      "weaponTooLong": "Niektoré pole prekračuje maximálnu dĺžku"
     }
   },
   "openingHours": {
@@ -331,6 +360,10 @@
     "submit": "Odoslať žiadosť",
     "cancel": "Zrušiť rezerváciu",
     "cancelConfirm": "Naozaj chcete zrušiť túto rezerváciu?",
+    "cancelReasonLabel": "Dôvod zrušenia (nepovinné)",
+    "cancelReasonPlaceholder": "napr. zdravotné dôvody, zmena plánov…",
+    "confirmCancel": "Áno, zrušiť",
+    "keepBooking": "Ponechať",
     "submitted": "Žiadosť o rezerváciu bola odoslaná",
     "cancelled": "Rezervácia bola zrušená",
     "slotTaken": "Tento termín je už obsadený",
@@ -545,18 +578,10 @@
   },
   "settings": {
     "title": "Nastavenia",
-    "smsTitle": "SMS notifikácie",
-    "smsDescription": "Určuje, komu sa posielajú SMS pri rezervačných udalostiach. Zmena sa prejaví okamžite pri ďalšej notifikácii. E-maily sú vždy odosielané nezávisle od tohto nastavenia.",
-    "smsMode": {
-      "allTitle": "Všetkým",
-      "allDesc": "SMS sa posielajú adminom aj členom pri každej udalosti (okrem bežnej e-mailovej).",
-      "adminOnlyTitle": "Len adminom",
-      "adminOnlyDesc": "SMS dostávajú len adminovia (napr. nová žiadosť). Členovia dostanú iba e-mail.",
-      "membersOnlyTitle": "Len členom",
-      "membersOnlyDesc": "SMS dostávajú iba členovia (schválenie, pripomienka, zrušenie...). Adminovia nie.",
-      "offTitle": "Vypnuté",
-      "offDesc": "Žiadne lifecycle SMS. OTP pri registrácii zostáva aktívne."
-    }
+    "reminderSmsTitle": "SMS pripomienka 5 minút pred rezerváciou",
+    "reminderSmsDescription": "E-maily sa posielajú vždy. Ostatné SMS správy sú vypnuté; posielame SMS iba pri zmene telefónneho čísla členom.",
+    "reminderSmsEnabled": "SMS pripomienka zapnutá",
+    "reminderSmsDisabled": "SMS pripomienka vypnutá"
   },
   "rateLimits": {
     "title": "Rate Limits",

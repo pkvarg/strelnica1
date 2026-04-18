@@ -2,41 +2,36 @@ import { db } from "@/db";
 import { appSettings } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-export type SmsMode = "off" | "admin_only" | "members_only" | "all";
-export type Audience = "admin" | "member";
-
 const SINGLETON_ID = 1;
 
-export async function getSmsMode(): Promise<SmsMode> {
+/**
+ * The only lifecycle SMS that can fire at all. When false, the booking
+ * reminder is email-only. Phone-change OTP SMS is independent of this flag.
+ */
+export async function isReminderSmsEnabled(): Promise<boolean> {
   const [row] = await db
-    .select({ smsMode: appSettings.smsMode })
+    .select({ reminderSmsEnabled: appSettings.reminderSmsEnabled })
     .from(appSettings)
     .where(eq(appSettings.id, SINGLETON_ID))
     .limit(1);
 
-  return (row?.smsMode as SmsMode | undefined) ?? "all";
+  return row?.reminderSmsEnabled ?? true;
 }
 
-export async function setSmsMode(mode: SmsMode, updatedBy: string): Promise<void> {
+export async function setReminderSmsEnabled(
+  enabled: boolean,
+  updatedBy: string,
+): Promise<void> {
   await db
     .insert(appSettings)
-    .values({ id: SINGLETON_ID, smsMode: mode, updatedBy, updatedAt: new Date() })
+    .values({
+      id: SINGLETON_ID,
+      reminderSmsEnabled: enabled,
+      updatedBy,
+      updatedAt: new Date(),
+    })
     .onConflictDoUpdate({
       target: appSettings.id,
-      set: { smsMode: mode, updatedBy, updatedAt: new Date() },
+      set: { reminderSmsEnabled: enabled, updatedBy, updatedAt: new Date() },
     });
-}
-
-export async function shouldSendSms(audience: Audience): Promise<boolean> {
-  const mode = await getSmsMode();
-  switch (mode) {
-    case "off":
-      return false;
-    case "all":
-      return true;
-    case "admin_only":
-      return audience === "admin";
-    case "members_only":
-      return audience === "member";
-  }
 }

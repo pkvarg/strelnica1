@@ -1,4 +1,4 @@
-import { boolean, date, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { date, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -13,10 +13,6 @@ export const users = pgTable("users", {
   addressZip: text("address_zip"),
   addressCountry: text("address_country").default("SK"),
   zbrojnyPreukazNumberEncrypted: text("zbrojny_preukaz_number_encrypted"),
-  zbrojnyPreukazCategory: text("zbrojny_preukaz_category"),
-  zbrojnyPreukazIssuedAt: date("zbrojny_preukaz_issued_at"),
-  zbrojnyPreukazExpiresAt: date("zbrojny_preukaz_expires_at"),
-  zbrojnyPreukazIssuingAuthority: text("zbrojny_preukaz_issuing_authority"),
   zbrojnyPreukazVerifiedAt: timestamp("zbrojny_preukaz_verified_at", { withTimezone: true }),
   zbrojnyPreukazVerifiedBy: uuid("zbrojny_preukaz_verified_by"),
   role: text("role", { enum: ["admin", "member"] }).notNull().default("member"),
@@ -31,8 +27,6 @@ export const users = pgTable("users", {
   invitedBy: uuid("invited_by"),
   invitationTokenHash: text("invitation_token_hash"),
   invitationExpiresAt: timestamp("invitation_expires_at", { withTimezone: true }),
-  totpSecretEncrypted: text("totp_secret_encrypted"),
-  totpEnabledAt: timestamp("totp_enabled_at", { withTimezone: true }),
   adminApprovalCodeHash: text("admin_approval_code_hash"),
   passwordHash: text("password_hash"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
