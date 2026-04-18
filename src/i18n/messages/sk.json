@@ -581,7 +581,11 @@
     "reminderSmsTitle": "SMS pripomienka 5 minút pred rezerváciou",
     "reminderSmsDescription": "E-maily sa posielajú vždy. Ostatné SMS správy sú vypnuté; posielame SMS iba pri zmene telefónneho čísla členom.",
     "reminderSmsEnabled": "SMS pripomienka zapnutá",
-    "reminderSmsDisabled": "SMS pripomienka vypnutá"
+    "reminderSmsDisabled": "SMS pripomienka vypnutá",
+    "bookingRecipientsTitle": "Príjemcovia oznámení o žiadostiach o rezerváciu",
+    "bookingRecipientsDescription": "Vyberte adminov, ktorí dostanú e-mail pri novej žiadosti o rezerváciu. Ak nezvolíte žiadneho, žiadosti nedostane nikto a je potrebné ich schvaľovať z admin panelu.",
+    "bookingRecipientsNone": "Žiadny admin nie je zvolený — oznámenia o žiadostiach nikto nedostane.",
+    "noAdmins": "V systéme nie je žiadny aktívny admin."
   },
   "rateLimits": {
     "title": "Rate Limits",

@@ -9,7 +9,13 @@ export async function issueApprovalTokens(bookingId: string) {
   const admins = await db
     .select({ id: users.id })
     .from(users)
-    .where(and(eq(users.role, "admin"), eq(users.status, "active")));
+    .where(
+      and(
+        eq(users.role, "admin"),
+        eq(users.status, "active"),
+        eq(users.receivesBookingRequests, true),
+      ),
+    );
 
   const tokens: { adminUserId: string; action: "approve" | "decline"; token: string }[] = [];
 

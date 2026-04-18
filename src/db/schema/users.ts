@@ -1,4 +1,4 @@
-import { date, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, date, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -16,6 +16,7 @@ export const users = pgTable("users", {
   zbrojnyPreukazVerifiedAt: timestamp("zbrojny_preukaz_verified_at", { withTimezone: true }),
   zbrojnyPreukazVerifiedBy: uuid("zbrojny_preukaz_verified_by"),
   role: text("role", { enum: ["admin", "member"] }).notNull().default("member"),
+  receivesBookingRequests: boolean("receives_booking_requests").notNull().default(true),
   status: text("status", {
     enum: ["invited", "pending_verification", "active", "suspended", "anonymized"],
   })
