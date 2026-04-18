@@ -199,6 +199,8 @@
     "approve": "Schváliť",
     "decline": "Zamietnuť",
     "declineReason": "Dôvod zamietnutia",
+    "cancelReasonLabel": "Dôvod zrušenia",
+    "cancelledBy": { "member": "zrušil člen", "admin": "zrušil admin" },
     "requestTime": "Žiadosť",
     "guestsWithCount": "({count} hostí)",
     "checkIn": "Check-in",
@@ -366,6 +368,7 @@
     "submitted": "Žiadosť o rezerváciu bola odoslaná",
     "cancelled": "Rezervácia bola zrušená",
     "slotTaken": "Tento termín je už obsadený",
+    "pastDate": "Nie je možné rezervovať termín v minulosti",
     "outsideHours": "Mimo otváracích hodín",
     "closedRange": "Strelnica je v tomto termíne uzavretá",
     "noBookings": "Žiadne rezervácie",
@@ -382,6 +385,26 @@
       "checked_in": "Prihlásený",
       "completed": "Dokončená",
       "no_show": "Neprišiel"
+    }
+  },
+  "checkIn": {
+    "title": "Potvrdenie príchodu",
+    "member": "Člen",
+    "range": "Strelnica",
+    "date": "Dátum",
+    "time": "Čas",
+    "confirmButton": "Potvrdiť príchod",
+    "successMessage": "Check-in bol potvrdený. Vitajte na strelnici!",
+    "invalidLink": "Odkaz je neplatný alebo expiroval.",
+    "notFound": "Rezervácia nebola nájdená.",
+    "alreadyCheckedIn": "Check-in ste už potvrdili.",
+    "notApprovable": "Rezervácia nie je v stave, v ktorom je možné potvrdiť príchod.",
+    "tooManyAttempts": "Príliš veľa pokusov. Skúste o niekoľko minút.",
+    "statusNotApprovable": {
+      "cancelled": "Rezervácia bola zrušená.",
+      "declined": "Rezervácia bola zamietnutá.",
+      "completed": "Rezervácia už bola ukončená.",
+      "no_show": "Rezervácia bola označená ako neúčasť."
     }
   },
   "calendar": {

@@ -41,6 +41,8 @@ export default async function AdminBookingsPage({
       guestCount: bookings.guestCount,
       userNote: bookings.userNote,
       adminNote: bookings.adminNote,
+      cancellationReason: bookings.cancellationReason,
+      cancelledBy: bookings.cancelledBy,
       requestedAt: bookings.requestedAt,
       userName: users.firstName,
       userLastName: users.lastName,

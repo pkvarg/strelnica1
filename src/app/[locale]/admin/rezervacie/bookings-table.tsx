@@ -20,6 +20,8 @@ interface Booking {
   guestCount: number;
   userNote: string | null;
   adminNote: string | null;
+  cancellationReason: string | null;
+  cancelledBy: "member" | "admin" | null;
   userName: string;
   userLastName: string;
   userEmail: string;
@@ -89,8 +91,24 @@ export function AdminBookingsTable({
                 {t(`status.${b.status}` as "status.requested")}
               </span>
             </TableCell>
-            <TableCell className="max-w-[200px] truncate text-xs">
-              {b.userNote ?? "-"}
+            <TableCell className="max-w-[260px] text-xs">
+              {b.userNote && (
+                <div className="truncate text-zinc-300" title={b.userNote}>
+                  {b.userNote}
+                </div>
+              )}
+              {b.status === "cancelled" && b.cancellationReason && (
+                <div className="mt-1 text-zinc-400">
+                  <span className="text-zinc-500">{tAdmin("cancelReasonLabel")}:</span>{" "}
+                  <span className="italic">{b.cancellationReason}</span>
+                  {b.cancelledBy && (
+                    <span className="ml-1 text-[10px] text-zinc-600">
+                      ({tAdmin(`cancelledBy.${b.cancelledBy}` as "cancelledBy.member")})
+                    </span>
+                  )}
+                </div>
+              )}
+              {!b.userNote && !(b.status === "cancelled" && b.cancellationReason) && "-"}
             </TableCell>
           </TableRow>
         ))}

@@ -48,7 +48,7 @@ export async function requestBooking(
   const endsAt = new Date(startsAt.getTime() + hours * 60 * 60 * 1000);
 
   if (startsAt <= new Date()) {
-    return { error: "Cannot book in the past" };
+    return { error: "pastDate" };
   }
 
   const withinHours = await isWithinOpeningHours(rangeId, startsAt, endsAt);
@@ -222,6 +222,7 @@ export async function cancelBooking(bookingId: string, reason?: string) {
         date: fmtDate(booking.startsAt),
         time: fmtTime(booking.startsAt),
         cancelledBy: "member",
+        reason: cancellationReason,
         locale: member.locale,
         bookingId,
         userId: session.user.id,

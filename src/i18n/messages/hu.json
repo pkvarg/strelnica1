@@ -199,6 +199,8 @@
     "approve": "Jóváhagyás",
     "decline": "Elutasítás",
     "declineReason": "Elutasítás oka",
+    "cancelReasonLabel": "Lemondás oka",
+    "cancelledBy": { "member": "tag mondta le", "admin": "admin mondta le" },
     "requestTime": "Kérelem",
     "guestsWithCount": "({count} vendég)",
     "checkIn": "Check-in",
@@ -366,6 +368,7 @@
     "submitted": "Foglalási kérelem elküldve",
     "cancelled": "Foglalás törölve",
     "slotTaken": "Ez az időpont már foglalt",
+    "pastDate": "Nem lehet múltbeli időpontra foglalni",
     "outsideHours": "Nyitvatartási időn kívül",
     "closedRange": "A lőtér ebben az időpontban zárva van",
     "noBookings": "Nincsenek foglalások",
@@ -382,6 +385,26 @@
       "checked_in": "Bejelentkezve",
       "completed": "Befejezett",
       "no_show": "Nem jelent meg"
+    }
+  },
+  "checkIn": {
+    "title": "Érkezés megerősítése",
+    "member": "Tag",
+    "range": "Lőtér",
+    "date": "Dátum",
+    "time": "Idő",
+    "confirmButton": "Érkezés megerősítése",
+    "successMessage": "Check-in megerősítve. Üdvözöljük a lőtéren!",
+    "invalidLink": "A hivatkozás érvénytelen vagy lejárt.",
+    "notFound": "A foglalás nem található.",
+    "alreadyCheckedIn": "A check-int már megerősítette.",
+    "notApprovable": "A foglalás nincs olyan állapotban, hogy érkezést lehessen megerősíteni.",
+    "tooManyAttempts": "Túl sok próbálkozás. Próbálja néhány perc múlva.",
+    "statusNotApprovable": {
+      "cancelled": "A foglalás törölve lett.",
+      "declined": "A foglalás elutasításra került.",
+      "completed": "A foglalás már lezárult.",
+      "no_show": "A foglalás meg nem jelentként lett megjelölve."
     }
   },
   "calendar": {

@@ -52,6 +52,8 @@ export async function BookingsOverview({
       guestCount: bookings.guestCount,
       userNote: bookings.userNote,
       adminNote: bookings.adminNote,
+      cancellationReason: bookings.cancellationReason,
+      cancelledBy: bookings.cancelledBy,
       userName: users.firstName,
       userLastName: users.lastName,
       userEmail: users.email,

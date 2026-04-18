@@ -348,6 +348,7 @@ export async function notifyMemberBookingCancelled(opts: {
   date: string;
   time: string;
   cancelledBy: "member" | "admin";
+  reason?: string | null;
   locale: string;
   bookingId: string;
   userId: string;
@@ -362,6 +363,7 @@ export async function notifyMemberBookingCancelled(opts: {
       date: opts.date,
       time: opts.time,
       cancelledBy: opts.cancelledBy,
+      reason: opts.reason ?? null,
       locale: opts.locale,
     },
     log: {

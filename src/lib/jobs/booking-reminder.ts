@@ -31,7 +31,7 @@ export async function registerBookingReminderHandler(boss: PgBoss) {
 
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
       const token = createCheckInToken(bookingId);
-      const checkInUrl = `${appUrl}/api/check-in?t=${token}`;
+      const checkInUrl = `${appUrl}/${user.locale}/check-in/${token}`;
 
       await notifyBookingReminder({
         email: user.email,
