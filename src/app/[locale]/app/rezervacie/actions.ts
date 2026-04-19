@@ -9,6 +9,9 @@ import { writeAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { getPgBoss } from "@/lib/pgboss";
 import { scheduleBookingExpiry } from "@/lib/jobs/booking-expiry";
+import { scheduleBookingReminder } from "@/lib/jobs/booking-reminder";
+import { scheduleNoShowSweep } from "@/lib/jobs/booking-noshow";
+import { scheduleAutoComplete } from "@/lib/jobs/booking-autocomplete";
 import { issueApprovalTokens } from "@/lib/approval-tokens";
 import { rateLimit } from "@/lib/rate-limit";
 import {
@@ -105,13 +108,17 @@ export async function requestBooking(
       },
     });
 
-    if (!autopilot) {
-      try {
-        const boss = getPgBoss();
+    try {
+      const boss = getPgBoss();
+      if (autopilot) {
+        await scheduleBookingReminder(boss, booking.id, startsAt);
+        await scheduleNoShowSweep(boss, booking.id, startsAt);
+        await scheduleAutoComplete(boss, booking.id, endsAt);
+      } else {
         await scheduleBookingExpiry(boss, booking.id);
-      } catch {
-        // pg-boss may not be started yet in dev; booking still created
       }
+    } catch {
+      // pg-boss may not be started yet in dev; booking still created
     }
 
     const adminTokens = autopilot ? [] : await issueApprovalTokens(booking.id);
