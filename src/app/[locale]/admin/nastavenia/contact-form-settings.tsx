@@ -3,16 +3,16 @@
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { updateBookingRecipients } from "./actions";
+import { updateContactFormSettings } from "./actions";
 
 interface AdminRow {
   id: string;
   name: string;
   email: string;
-  receivesBookingRequests: boolean;
+  receivesContactForm: boolean;
 }
 
-export function BookingRecipientsForm({
+export function ContactFormSettings({
   admins,
   bccExtra,
 }: {
@@ -22,12 +22,12 @@ export function BookingRecipientsForm({
   const t = useTranslations("settings");
   const tCommon = useTranslations("common");
   const [state, formAction, isPending] = useActionState(
-    updateBookingRecipients,
+    updateContactFormSettings,
     null,
   );
 
   const [selected, setSelected] = useState<Set<string>>(
-    new Set(admins.filter((a) => a.receivesBookingRequests).map((a) => a.id)),
+    new Set(admins.filter((a) => a.receivesContactForm).map((a) => a.id)),
   );
   const [bcc, setBcc] = useState(bccExtra);
 
@@ -75,27 +75,24 @@ export function BookingRecipientsForm({
 
       <div>
         <label
-          htmlFor="bookingRequestsBccExtra"
+          htmlFor="contactFormBccExtra"
           className="mb-1 block text-sm font-medium text-zinc-200"
         >
-          {t("bookingRequestsBccExtraLabel")}
+          {t("contactFormBccExtraLabel")}
         </label>
         <input
-          id="bookingRequestsBccExtra"
-          name="bookingRequestsBccExtra"
+          id="contactFormBccExtra"
+          name="contactFormBccExtra"
           type="text"
           value={bcc}
           onChange={(e) => setBcc(e.target.value)}
-          placeholder={t("bookingRequestsBccExtraPlaceholder")}
+          placeholder={t("contactFormBccExtraPlaceholder")}
           className="w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-amber-600 focus:outline-none"
         />
-        <p className="mt-1 text-xs text-zinc-500">
-          {t("bookingRequestsBccExtraHelp")}
-        </p>
       </div>
 
       {noneConfigured && (
-        <p className="text-sm text-amber-400">{t("bookingRecipientsNone")}</p>
+        <p className="text-sm text-amber-400">{t("contactFormRecipientsNone")}</p>
       )}
 
       {state?.error && <p className="text-sm text-red-400">{state.error}</p>}

@@ -16,6 +16,7 @@ export const users = pgTable("users", {
   zbrojnyPreukazVerifiedBy: uuid("zbrojny_preukaz_verified_by"),
   role: text("role", { enum: ["admin", "member"] }).notNull().default("member"),
   receivesBookingRequests: boolean("receives_booking_requests").notNull().default(true),
+  receivesContactForm: boolean("receives_contact_form").notNull().default(false),
   status: text("status", {
     enum: ["invited", "pending_verification", "active", "suspended", "anonymized"],
   })

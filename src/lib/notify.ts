@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { notificationsLog } from "@/db/schema";
-import { isReminderSmsEnabled } from "@/lib/settings";
+import { getContactFormBccList, isReminderSmsEnabled } from "@/lib/settings";
 import crypto from "crypto";
 
 const HONO_URL = process.env.NEXT_PUBLIC_HONO_API_URL || "https://hono.pictusweb.sk";
@@ -175,6 +175,8 @@ export async function notifyAdminsBookingRequest(opts: {
   guestCount: number;
   note: string | null;
   admins: { email: string; approveUrl: string; declineUrl: string }[];
+  infoOnlyEmails?: string[];
+  autopilot?: boolean;
   locale: string;
   bookingId: string;
 }) {
@@ -192,14 +194,49 @@ export async function notifyAdminsBookingRequest(opts: {
         hours: opts.hours,
         guestCount: opts.guestCount,
         note: opts.note,
-        approveUrl: admin.approveUrl,
-        declineUrl: admin.declineUrl,
+        approveUrl: opts.autopilot ? "" : admin.approveUrl,
+        declineUrl: opts.autopilot ? "" : admin.declineUrl,
+        infoOnly: !!opts.autopilot,
+        autopilot: !!opts.autopilot,
         locale: opts.locale,
       },
       log: {
         channel: "email",
         to: admin.email,
-        template: "booking_request_admin",
+        template: opts.autopilot
+          ? "booking_request_admin_autopilot"
+          : "booking_request_admin",
+        locale: opts.locale,
+        bookingId: opts.bookingId,
+      },
+    });
+  }
+
+  for (const email of opts.infoOnlyEmails ?? []) {
+    await enqueueNotify({
+      endpoint: "booking-request-admin",
+      payload: {
+        email,
+        memberName: opts.memberName,
+        memberEmail: opts.memberEmail,
+        rangeId: opts.rangeId,
+        date: opts.date,
+        time: opts.time,
+        hours: opts.hours,
+        guestCount: opts.guestCount,
+        note: opts.note,
+        approveUrl: "",
+        declineUrl: "",
+        infoOnly: true,
+        autopilot: !!opts.autopilot,
+        locale: opts.locale,
+      },
+      log: {
+        channel: "email",
+        to: email,
+        template: opts.autopilot
+          ? "booking_request_admin_autopilot"
+          : "booking_request_admin_info",
         locale: opts.locale,
         bookingId: opts.bookingId,
       },
@@ -216,6 +253,7 @@ export async function notifyMemberBookingApproved(opts: {
   locale: string;
   bookingId: string;
   userId: string;
+  autoApproved?: boolean;
 }) {
   const { enqueueNotify } = await import("@/lib/jobs/notify-send");
   await enqueueNotify({
@@ -226,12 +264,13 @@ export async function notifyMemberBookingApproved(opts: {
       rangeId: opts.rangeId,
       date: opts.date,
       time: opts.time,
+      autoApproved: !!opts.autoApproved,
       locale: opts.locale,
     },
     log: {
       channel: "email",
       to: opts.email,
-      template: "booking_approved",
+      template: opts.autoApproved ? "booking_approved_auto" : "booking_approved",
       locale: opts.locale,
       bookingId: opts.bookingId,
       userId: opts.userId,
@@ -440,17 +479,20 @@ export async function notifyContact(opts: {
   message: string;
   locale: string;
 }) {
+  const bcc = await getContactFormBccList();
+
   const result = await callHono("contact", {
     name: opts.name,
     email: opts.email,
     phone: opts.phone,
     message: opts.message,
     locale: opts.locale,
+    bcc,
   });
 
   await logNotification({
     channel: "email",
-    to: "admin",
+    to: bcc.length > 0 ? bcc.join(", ") : "admin",
     template: "contact",
     locale: opts.locale,
     status: result.success ? "sent" : "failed",

@@ -11,7 +11,15 @@ import { getPgBoss } from "@/lib/pgboss";
 import { scheduleBookingExpiry } from "@/lib/jobs/booking-expiry";
 import { issueApprovalTokens } from "@/lib/approval-tokens";
 import { rateLimit } from "@/lib/rate-limit";
-import { notifyAdminsBookingRequest, notifyMemberBookingCancelled } from "@/lib/notify";
+import {
+  notifyAdminsBookingRequest,
+  notifyMemberBookingApproved,
+  notifyMemberBookingCancelled,
+} from "@/lib/notify";
+import {
+  getBookingRequestsExtraRecipients,
+  isAutopilotEnabled,
+} from "@/lib/settings";
 import { fmtDate, fmtTime } from "@/lib/format";
 
 interface BookingResult {
@@ -62,6 +70,8 @@ export async function requestBooking(
   }
 
   try {
+    const autopilot = await isAutopilotEnabled();
+
     const [booking] = await db
       .insert(bookings)
       .values({
@@ -72,24 +82,39 @@ export async function requestBooking(
         guestCount,
         userNote,
         rulesConsentVersionAtBooking: "v1",
+        ...(autopilot
+          ? {
+              status: "approved" as const,
+              decidedAt: new Date(),
+              decisionReason: "autopilot",
+            }
+          : {}),
       })
       .returning({ id: bookings.id });
 
     await writeAudit({
       actorUserId: session.user.id,
-      action: "request_booking",
+      action: autopilot ? "autopilot_approve_booking" : "request_booking",
       entityType: "booking",
       entityId: booking.id,
-      after: { rangeId, startsAt: startsAt.toISOString(), endsAt: endsAt.toISOString() },
+      after: {
+        rangeId,
+        startsAt: startsAt.toISOString(),
+        endsAt: endsAt.toISOString(),
+        autopilot,
+      },
     });
 
-    try {
-      const boss = getPgBoss();
-      await scheduleBookingExpiry(boss, booking.id);
-    } catch {
-      // pg-boss may not be started yet in dev; booking still created
+    if (!autopilot) {
+      try {
+        const boss = getPgBoss();
+        await scheduleBookingExpiry(boss, booking.id);
+      } catch {
+        // pg-boss may not be started yet in dev; booking still created
+      }
     }
-    const adminTokens = await issueApprovalTokens(booking.id);
+
+    const adminTokens = autopilot ? [] : await issueApprovalTokens(booking.id);
 
     try {
       const [member] = await db
@@ -118,6 +143,9 @@ export async function requestBooking(
       const locale = member?.locale || "sk";
 
       const admins = adminRows.map((a) => {
+        if (autopilot) {
+          return { email: a.email, approveUrl: "", declineUrl: "" };
+        }
         const approveToken = adminTokens.find(
           (t) => t.adminUserId === a.id && t.action === "approve",
         )?.token;
@@ -131,6 +159,13 @@ export async function requestBooking(
         };
       });
 
+      const adminEmails = new Set(
+        adminRows.map((a) => a.email.toLowerCase()),
+      );
+      const infoOnlyEmails = (await getBookingRequestsExtraRecipients()).filter(
+        (e) => !adminEmails.has(e.toLowerCase()),
+      );
+
       await notifyAdminsBookingRequest({
         memberName: member ? `${member.firstName} ${member.lastName}` : "—",
         memberEmail: member?.email || "",
@@ -141,9 +176,25 @@ export async function requestBooking(
         guestCount,
         note: userNote,
         admins,
+        infoOnlyEmails,
+        autopilot,
         locale,
         bookingId: booking.id,
       }).catch(console.error);
+
+      if (autopilot && member?.email) {
+        await notifyMemberBookingApproved({
+          email: member.email,
+          memberName: `${member.firstName} ${member.lastName}`.trim(),
+          rangeId,
+          date: fmtDate(startsAt),
+          time: fmtTime(startsAt),
+          locale,
+          bookingId: booking.id,
+          userId: session.user.id,
+          autoApproved: true,
+        }).catch(console.error);
+      }
     } catch (e) {
       console.error("[requestBooking] admin notify failed:", e);
     }

@@ -99,6 +99,27 @@
       "when": 1776600000003,
       "tag": "0013_drop_birth_place",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1776600000004,
+      "tag": "0014_contact_form_recipients",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1776600000005,
+      "tag": "0015_booking_requests_bcc_extra",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1776600000006,
+      "tag": "0016_autopilot",
+      "breakpoints": true
     }
   ]
 }
