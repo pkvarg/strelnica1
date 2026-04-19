@@ -20,7 +20,7 @@ import {
   getBookingRequestsExtraRecipients,
   isAutopilotEnabled,
 } from "@/lib/settings";
-import { fmtDate, fmtTime } from "@/lib/format";
+import { fmtDate, fmtTime, bratislavaLocalToUtc } from "@/lib/format";
 
 interface BookingResult {
   error?: string;
@@ -52,7 +52,7 @@ export async function requestBooking(
     return { error: "Start time must be a whole hour" };
   }
 
-  const startsAt = new Date(`${date}T${startTime}`);
+  const startsAt = bratislavaLocalToUtc(date, startTime);
   const endsAt = new Date(startsAt.getTime() + hours * 60 * 60 * 1000);
 
   if (startsAt <= new Date()) {
@@ -129,7 +129,7 @@ export async function requestBooking(
         .limit(1);
 
       const adminRows = await db
-        .select({ id: users.id, email: users.email })
+        .select({ id: users.id, email: users.email, firstName: users.firstName })
         .from(users)
         .where(
           and(
@@ -144,7 +144,7 @@ export async function requestBooking(
 
       const admins = adminRows.map((a) => {
         if (autopilot) {
-          return { email: a.email, approveUrl: "", declineUrl: "" };
+          return { email: a.email, firstName: a.firstName, approveUrl: "", declineUrl: "" };
         }
         const approveToken = adminTokens.find(
           (t) => t.adminUserId === a.id && t.action === "approve",
@@ -154,6 +154,7 @@ export async function requestBooking(
         )?.token;
         return {
           email: a.email,
+          firstName: a.firstName,
           approveUrl: `${appUrl}/${locale}/admin-decide/${approveToken}`,
           declineUrl: `${appUrl}/${locale}/admin-decide/${declineToken}`,
         };

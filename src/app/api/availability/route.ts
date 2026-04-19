@@ -7,7 +7,12 @@ import {
   bookings,
 } from "@/db/schema";
 import { eq, and, gte, lte, or, isNull, asc, inArray } from "drizzle-orm";
-import { bratislavaDateStr, bratislavaTimeStr } from "@/lib/format";
+import {
+  bratislavaDateStr,
+  bratislavaTimeStr,
+  bratislavaPartsOf,
+  bratislavaLocalToUtc,
+} from "@/lib/format";
 
 export async function GET(req: NextRequest) {
   const monthParam = req.nextUrl.searchParams.get("month");
@@ -95,7 +100,7 @@ export async function GET(req: NextRequest) {
     const date = new Date(rangeStart);
     date.setDate(date.getDate() + d);
     const dateStr = bratislavaDateStr(date);
-    const weekday = date.getDay();
+    const weekday = bratislavaPartsOf(date).weekday;
 
     const dayRanges = allRanges.map((range) => {
       const rangeHours = hours.find(
@@ -109,8 +114,8 @@ export async function GET(req: NextRequest) {
       const rangeClosure = activClosures.find(
         (c) =>
           (!c.rangeId || c.rangeId === range.id) &&
-          c.startsAt <= new Date(dateStr + "T23:59:59") &&
-          c.endsAt >= new Date(dateStr + "T00:00:00"),
+          c.startsAt <= bratislavaLocalToUtc(dateStr, "23:59") &&
+          c.endsAt >= bratislavaLocalToUtc(dateStr, "00:00"),
       );
 
       const dayBookings = activeBookings

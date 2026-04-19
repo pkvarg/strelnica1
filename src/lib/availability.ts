@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { openingHoursTemplates, closures } from "@/db/schema";
 import { eq, and, lte, or, isNull, gte } from "drizzle-orm";
-import { bratislavaDateStr } from "@/lib/format";
+import { bratislavaDateStr, bratislavaPartsOf } from "@/lib/format";
 
 function timeToMin(s: string): number {
   const [h, m] = s.split(":").map(Number);
@@ -13,7 +13,9 @@ export async function isWithinOpeningHours(
   startsAt: Date,
   endsAt: Date,
 ): Promise<boolean> {
-  const weekday = startsAt.getDay();
+  const startParts = bratislavaPartsOf(startsAt);
+  const endParts = bratislavaPartsOf(endsAt);
+  const weekday = startParts.weekday;
   const dateStr = bratislavaDateStr(startsAt);
 
   const hours = await db
@@ -33,8 +35,8 @@ export async function isWithinOpeningHours(
 
   if (hours.length === 0) return false;
 
-  const startMin = startsAt.getHours() * 60 + startsAt.getMinutes();
-  const endMin = endsAt.getHours() * 60 + endsAt.getMinutes();
+  const startMin = startParts.hour * 60 + startParts.minute;
+  const endMin = endParts.hour * 60 + endParts.minute;
 
   return hours.some(
     (h) => startMin >= timeToMin(h.startTime) && endMin <= timeToMin(h.endTime),

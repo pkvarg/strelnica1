@@ -174,7 +174,7 @@ export async function notifyAdminsBookingRequest(opts: {
   hours: number;
   guestCount: number;
   note: string | null;
-  admins: { email: string; approveUrl: string; declineUrl: string }[];
+  admins: { email: string; firstName?: string | null; approveUrl: string; declineUrl: string }[];
   infoOnlyEmails?: string[];
   autopilot?: boolean;
   locale: string;
@@ -186,6 +186,7 @@ export async function notifyAdminsBookingRequest(opts: {
       endpoint: "booking-request-admin",
       payload: {
         email: admin.email,
+        adminFirstName: admin.firstName ?? null,
         memberName: opts.memberName,
         memberEmail: opts.memberEmail,
         rangeId: opts.rangeId,

@@ -66,3 +66,62 @@ export function bratislavaTimeStr(d: Date): string {
     hour12: false,
   }).format(d);
 }
+
+/**
+ * Returns Bratislava wall-clock parts for the given instant. Independent of
+ * the runtime TZ. `weekday` follows JS Date.getDay() convention (0 = Sunday).
+ */
+export function bratislavaPartsOf(d: Date): {
+  year: number;
+  month: number;
+  day: number;
+  weekday: number;
+  hour: number;
+  minute: number;
+} {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: BRATISLAVA_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    weekday: "short",
+    hour12: false,
+  }).formatToParts(d);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  const weekdayMap: Record<string, number> = {
+    Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+  };
+  return {
+    year: Number(get("year")),
+    month: Number(get("month")),
+    day: Number(get("day")),
+    weekday: weekdayMap[get("weekday")] ?? 0,
+    hour: Number(get("hour")) % 24, // "24" can appear for midnight in some locales
+    minute: Number(get("minute")),
+  };
+}
+
+/**
+ * Parses a "YYYY-MM-DD" date + "HH:mm" time as Bratislava wall-clock time and
+ * returns the correct UTC instant. Independent of the runtime TZ, DST-aware.
+ */
+export function bratislavaLocalToUtc(dateStr: string, timeStr: string): Date {
+  const [hh, mm] = timeStr.split(":").map(Number);
+  const asUtc = new Date(`${dateStr}T${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:00Z`);
+  // Format that instant in Bratislava; difference from the input is the offset.
+  const displayed = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: BRATISLAVA_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(asUtc);
+  const displayedAsUtc = new Date(displayed.replace(" ", "T") + "Z");
+  const offsetMs = displayedAsUtc.getTime() - asUtc.getTime();
+  return new Date(asUtc.getTime() - offsetMs);
+}

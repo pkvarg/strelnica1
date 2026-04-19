@@ -6,6 +6,7 @@ import { closures } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
+import { bratislavaLocalToUtc } from "@/lib/format";
 
 export async function addClosure(
   _prev: { error?: string; success?: boolean } | null,
@@ -31,8 +32,8 @@ export async function addClosure(
 
   await db.insert(closures).values({
     rangeId,
-    startsAt: new Date(`${startDate}T${startTime}`),
-    endsAt: new Date(`${endDate}T${endTime}`),
+    startsAt: bratislavaLocalToUtc(startDate, startTime),
+    endsAt: bratislavaLocalToUtc(endDate, endTime),
     reasonSk,
     reasonHu,
     createdBy: session.user.id,
@@ -69,8 +70,8 @@ export async function updateClosure(
     .update(closures)
     .set({
       rangeId,
-      startsAt: new Date(`${startDate}T${startTime}`),
-      endsAt: new Date(`${endDate}T${endTime}`),
+      startsAt: bratislavaLocalToUtc(startDate, startTime),
+      endsAt: bratislavaLocalToUtc(endDate, endTime),
       reasonSk,
       reasonHu,
     })
