@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { ranges, openingHoursTemplates } from "@/db/schema";
 import { eq, and, lte, or, isNull, gte, asc } from "drizzle-orm";
 import { getLocale, getTranslations } from "next-intl/server";
+import { bratislavaDateStr } from "@/lib/format";
 
 function hm(s: string): string {
   return s.slice(0, 5);
@@ -10,7 +11,7 @@ function hm(s: string): string {
 export async function OpeningHoursPanel() {
   const locale = await getLocale();
   const t = await getTranslations();
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = bratislavaDateStr();
 
   const [activeRanges, hours] = await Promise.all([
     db

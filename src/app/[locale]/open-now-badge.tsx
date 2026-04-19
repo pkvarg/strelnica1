@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { openingHoursTemplates, closures } from "@/db/schema";
 import { and, lte, gte, or, isNull, eq } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
+import { bratislavaDateStr, bratislavaTimeStr } from "@/lib/format";
 
 function timeToMin(s: string): number {
   const [h, m] = s.split(":").map(Number);
@@ -10,8 +11,8 @@ function timeToMin(s: string): number {
 
 async function isAnyRangeOpen(now: Date): Promise<boolean> {
   const weekday = now.getDay();
-  const dateStr = now.toISOString().split("T")[0];
-  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const dateStr = bratislavaDateStr(now);
+  const nowMin = timeToMin(bratislavaTimeStr(now));
 
   const hours = await db
     .select({

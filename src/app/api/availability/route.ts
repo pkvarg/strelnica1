@@ -7,6 +7,7 @@ import {
   bookings,
 } from "@/db/schema";
 import { eq, and, gte, lte, or, isNull, asc, inArray } from "drizzle-orm";
+import { bratislavaDateStr, bratislavaTimeStr } from "@/lib/format";
 
 export async function GET(req: NextRequest) {
   const monthParam = req.nextUrl.searchParams.get("month");
@@ -36,8 +37,8 @@ export async function GET(req: NextRequest) {
     .where(eq(ranges.active, true))
     .orderBy(asc(ranges.sortOrder));
 
-  const todayStr = rangeStart.toISOString().split("T")[0];
-  const endStr = twoWeeksLater.toISOString().split("T")[0];
+  const todayStr = bratislavaDateStr(rangeStart);
+  const endStr = bratislavaDateStr(twoWeeksLater);
 
   const hours = await db
     .select()
@@ -93,7 +94,7 @@ export async function GET(req: NextRequest) {
   for (let d = 0; d < totalDays; d++) {
     const date = new Date(rangeStart);
     date.setDate(date.getDate() + d);
-    const dateStr = date.toISOString().split("T")[0];
+    const dateStr = bratislavaDateStr(date);
     const weekday = date.getDay();
 
     const dayRanges = allRanges.map((range) => {
@@ -116,11 +117,11 @@ export async function GET(req: NextRequest) {
         .filter(
           (b) =>
             b.rangeId === range.id &&
-            b.startsAt.toISOString().startsWith(dateStr),
+            bratislavaDateStr(b.startsAt) === dateStr,
         )
         .map((b) => ({
-          start: b.startsAt.toTimeString().slice(0, 5),
-          end: b.endsAt.toTimeString().slice(0, 5),
+          start: bratislavaTimeStr(b.startsAt),
+          end: bratislavaTimeStr(b.endsAt),
         }));
 
       return {

@@ -16,6 +16,11 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV TZ=Europe/Bratislava
+
+RUN apk add --no-cache tzdata \
+  && cp /usr/share/zoneinfo/Europe/Bratislava /etc/localtime \
+  && echo "Europe/Bratislava" > /etc/timezone
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs

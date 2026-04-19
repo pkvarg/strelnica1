@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
+import { bratislavaDateStr } from "@/lib/format";
 
 interface DayRange {
   rangeId: string;
@@ -77,7 +78,7 @@ function monthLabel(year: number, month: number, locale: string): string {
 }
 
 function isToday(dateStr: string): boolean {
-  return dateStr === new Date().toISOString().split("T")[0];
+  return dateStr === bratislavaDateStr();
 }
 
 function buildBookingHref(
@@ -143,7 +144,7 @@ export function AvailabilityCalendar() {
     year < today.getFullYear() ||
     (year === today.getFullYear() && month <= today.getMonth() + 1);
 
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = bratislavaDateStr(today);
   const visibleDays = useMemo(
     () => (data?.days ?? []).filter((d) => d.date >= todayStr),
     [data, todayStr],
