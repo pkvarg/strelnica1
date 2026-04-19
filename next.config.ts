@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
@@ -21,7 +22,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
       "font-src 'self' https://fonts.gstatic.com",
-      "connect-src 'self' https://hono-api.pictusweb.com http://localhost:3013 https://umami-p00gs00gwcwo00s4k4c4kgg8.pictusweb.com",
+      "connect-src 'self' https://hono-api.pictusweb.com http://localhost:3013 https://umami-p00gs00gwcwo00s4k4c4kgg8.pictusweb.com https://glitchtip.pictusweb.sk",
       "frame-ancestors 'none'",
     ].join("; "),
   },
@@ -38,4 +39,8 @@ const nextConfig: NextConfig = {
   ],
 };
 
-export default withNextIntl(nextConfig);
+export default withSentryConfig(withNextIntl(nextConfig), {
+  silent: !process.env.CI,
+  disableLogger: true,
+  telemetry: false,
+});
