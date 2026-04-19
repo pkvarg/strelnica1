@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { fmtDate } from "@/lib/format";
 
 interface User {
   id: string;
@@ -70,7 +71,7 @@ export function UserTable({ users }: { users: User[] }) {
               </span>
             </TableCell>
             <TableCell>
-              {user.createdAt.toLocaleDateString(locale)}
+              {fmtDate(user.createdAt, locale)}
             </TableCell>
           </TableRow>
         ))}

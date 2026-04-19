@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { getTokenDetails } from "./actions";
 import { DecideForm } from "./decide-form";
+import { fmtDate, fmtTime } from "@/lib/format";
 
 export default async function DecidePage({
   params,
@@ -11,7 +12,6 @@ export default async function DecidePage({
   const details = await getTokenDetails(token);
   const t = await getTranslations("admin");
   const locale = await getLocale();
-  const localeTag = locale === "hu" ? "hu-HU" : "sk-SK";
 
   if (!details) {
     return (
@@ -72,14 +72,14 @@ export default async function DecidePage({
             </div>
             <div className="flex justify-between">
               <dt className="text-zinc-500">{t("columns.date")}</dt>
-              <dd>{details.booking.startsAt.toLocaleDateString(localeTag)}</dd>
+              <dd>{fmtDate(details.booking.startsAt, locale)}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-zinc-500">{t("columns.time")}</dt>
               <dd>
-                {details.booking.startsAt.toLocaleTimeString(localeTag, { hour: "2-digit", minute: "2-digit" })}
+                {fmtTime(details.booking.startsAt, locale)}
                 {" - "}
-                {details.booking.endsAt.toLocaleTimeString(localeTag, { hour: "2-digit", minute: "2-digit" })}
+                {fmtTime(details.booking.endsAt, locale)}
               </dd>
             </div>
             <div className="flex justify-between">

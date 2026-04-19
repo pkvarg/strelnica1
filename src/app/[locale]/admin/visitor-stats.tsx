@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { fmtDateTime } from "@/lib/format";
 
 interface Stats {
   visitors: number;
@@ -15,7 +16,6 @@ interface Stats {
 export function VisitorStats() {
   const t = useTranslations("admin.dashboard");
   const locale = useLocale();
-  const localeTag = locale === "hu" ? "hu-HU" : "sk-SK";
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export function VisitorStats() {
         <p className="text-sm text-zinc-500">{t("visitors")}</p>
         {stats.lastVisitor_at && (
           <p className="mt-1 text-xs text-zinc-600">
-            {new Date(stats.lastVisitor_at).toLocaleString(localeTag)}
+            {fmtDateTime(new Date(stats.lastVisitor_at), locale)}
           </p>
         )}
       </div>
@@ -43,7 +43,7 @@ export function VisitorStats() {
         <p className="text-sm text-zinc-500">{t("bots")}</p>
         {stats.lastBot_at && (
           <p className="mt-1 text-xs text-zinc-600">
-            {new Date(stats.lastBot_at).toLocaleString(localeTag)}
+            {fmtDateTime(new Date(stats.lastBot_at), locale)}
           </p>
         )}
       </div>
@@ -52,7 +52,7 @@ export function VisitorStats() {
         <p className="text-sm text-zinc-500">{t("emails")}</p>
         {stats.lastEmail_at && (
           <p className="mt-1 text-xs text-zinc-600">
-            {new Date(stats.lastEmail_at).toLocaleString(localeTag)}
+            {fmtDateTime(new Date(stats.lastEmail_at), locale)}
           </p>
         )}
       </div>

@@ -1,10 +1,18 @@
 const SK = "sk-SK";
 export const BRATISLAVA_TZ = "Europe/Bratislava";
 
-export function fmtDate(d: Date | string | null | undefined): string {
+type LocaleArg = string | "sk" | "hu" | null | undefined;
+const resolveLocale = (locale?: LocaleArg): string => {
+  if (!locale) return SK;
+  if (locale === "hu") return "hu-HU";
+  if (locale === "sk") return SK;
+  return locale;
+};
+
+export function fmtDate(d: Date | string | null | undefined, locale?: LocaleArg): string {
   if (!d) return "—";
   const date = typeof d === "string" ? new Date(d) : d;
-  return date.toLocaleDateString(SK, {
+  return date.toLocaleDateString(resolveLocale(locale), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -12,10 +20,10 @@ export function fmtDate(d: Date | string | null | undefined): string {
   });
 }
 
-export function fmtDateTime(d: Date | string | null | undefined): string {
+export function fmtDateTime(d: Date | string | null | undefined, locale?: LocaleArg): string {
   if (!d) return "—";
   const date = typeof d === "string" ? new Date(d) : d;
-  return date.toLocaleString(SK, {
+  return date.toLocaleString(resolveLocale(locale), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -26,10 +34,10 @@ export function fmtDateTime(d: Date | string | null | undefined): string {
   });
 }
 
-export function fmtTime(d: Date | string | null | undefined): string {
+export function fmtTime(d: Date | string | null | undefined, locale?: LocaleArg): string {
   if (!d) return "—";
   const date = typeof d === "string" ? new Date(d) : d;
-  return date.toLocaleTimeString(SK, {
+  return date.toLocaleTimeString(resolveLocale(locale), {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,

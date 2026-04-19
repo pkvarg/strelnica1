@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { fmtDateTime } from "@/lib/format";
+import { fmtDateTime, bratislavaDateStr, bratislavaTimeStr } from "@/lib/format";
 import { deleteClosure, updateClosure } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,13 +30,8 @@ interface Range {
   nameSk: string;
 }
 
-function toDateStr(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
-
-function toTimeStr(d: Date) {
-  return d.toLocaleTimeString("sk", { hour: "2-digit", minute: "2-digit", hour12: false });
-}
+const toDateStr = (d: Date) => bratislavaDateStr(d);
+const toTimeStr = (d: Date) => bratislavaTimeStr(d);
 
 function EditCard({
   closure,

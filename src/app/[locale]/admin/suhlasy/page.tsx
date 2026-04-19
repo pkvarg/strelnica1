@@ -11,11 +11,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { fmtDateTime } from "@/lib/format";
 
 export default async function ConsentAdminPage() {
   const t = await getTranslations("consent");
   const locale = await getLocale();
-  const dateLocale = locale === "hu" ? "hu-HU" : "sk-SK";
 
   const docs = await db
     .select()
@@ -61,7 +61,7 @@ export default async function ConsentAdminPage() {
                 <TableCell>{t(`kinds.${d.kind}` as "kinds.gdpr")}</TableCell>
                 <TableCell>{d.version}</TableCell>
                 <TableCell>{d.locale}</TableCell>
-                <TableCell>{d.publishedAt.toLocaleString(dateLocale)}</TableCell>
+                <TableCell>{fmtDateTime(d.publishedAt, locale)}</TableCell>
                 <TableCell className="max-w-[400px]">
                   <details>
                     <summary className="cursor-pointer text-xs text-zinc-500">

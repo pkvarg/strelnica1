@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { bookings, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyCheckInToken } from "@/lib/check-in-token";
+import { fmtDate, fmtTime, fmtDateTime } from "@/lib/format";
 import { CheckInForm } from "./check-in-form";
 
 type TerminalStatus = "cancelled" | "declined" | "completed" | "no_show";
@@ -15,7 +16,6 @@ export default async function CheckInPage({
   const { token } = await params;
   const t = await getTranslations("checkIn");
   const locale = await getLocale();
-  const localeTag = locale === "hu" ? "hu-HU" : "sk-SK";
 
   const bookingId = verifyCheckInToken(token);
   if (!bookingId) {
@@ -55,12 +55,7 @@ export default async function CheckInPage({
       <div className="flex flex-1 items-center justify-center p-6">
         <p className="text-zinc-300">
           {t("alreadyCheckedIn")}
-          {row.checkInAt
-            ? ` (${row.checkInAt.toLocaleString(localeTag, {
-                dateStyle: "short",
-                timeStyle: "short",
-              })})`
-            : ""}
+          {row.checkInAt ? ` (${fmtDateTime(row.checkInAt, locale)})` : ""}
         </p>
       </div>
     );
@@ -97,22 +92,14 @@ export default async function CheckInPage({
             </div>
             <div className="flex justify-between">
               <dt className="text-zinc-500">{t("date")}</dt>
-              <dd className="text-zinc-200">
-                {row.startsAt.toLocaleDateString(localeTag)}
-              </dd>
+              <dd className="text-zinc-200">{fmtDate(row.startsAt, locale)}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-zinc-500">{t("time")}</dt>
               <dd className="text-zinc-200">
-                {row.startsAt.toLocaleTimeString(localeTag, {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {fmtTime(row.startsAt, locale)}
                 {" – "}
-                {row.endsAt.toLocaleTimeString(localeTag, {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {fmtTime(row.endsAt, locale)}
               </dd>
             </div>
           </dl>

@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { fmtDate } from "@/lib/format";
 
 interface Membership {
   userId: string;
@@ -36,7 +37,6 @@ export function MembershipTable({ rows, year }: { rows: Row[]; year: number }) {
   const t = useTranslations("membership");
   const tAdmin = useTranslations("admin");
   const locale = useLocale();
-  const localeTag = locale === "hu" ? "hu-HU" : "sk-SK";
   return (
     <Table>
       <TableHeader>
@@ -79,7 +79,7 @@ export function MembershipTable({ rows, year }: { rows: Row[]; year: number }) {
                   <span className="text-xs text-red-600">{t("cancelled")}</span>
                 ) : paid ? (
                   <span className="text-xs text-green-700">
-                    {m.paidAt!.toLocaleDateString(localeTag)}
+                    {fmtDate(m.paidAt, locale)}
                   </span>
                 ) : (
                   <span className="text-xs text-amber-600">{t("unpaid")}</span>

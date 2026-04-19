@@ -1,6 +1,7 @@
 import { getLocale } from "next-intl/server";
 import { getLatestConsent } from "@/lib/consent";
 import { marked } from "marked";
+import { fmtDate } from "@/lib/format";
 
 export default async function RangeRulesPage() {
   const locale = (await getLocale()) as "sk" | "hu";
@@ -28,7 +29,7 @@ export default async function RangeRulesPage() {
           {locale === "hu" ? "Lőtér szabályzat" : "Pravidlá strelnice"}
         </h1>
         <p className="mt-2 text-sm text-zinc-500">
-          {locale === "hu" ? "Verzió" : "Verzia"}: {doc.version} — {doc.publishedAt.toLocaleDateString(locale === "hu" ? "hu-HU" : "sk-SK")}
+          {locale === "hu" ? "Verzió" : "Verzia"}: {doc.version} — {fmtDate(doc.publishedAt, locale)}
         </p>
       </div>
       <div

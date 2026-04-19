@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { banContact, unbanContact } from "./actions";
+import { fmtDateTime } from "@/lib/format";
 
 interface ContactLog {
   id: string;
@@ -39,7 +40,6 @@ export function ContactLogManager() {
   const t = useTranslations("contactLog");
   const tBan = useTranslations("contactLog.ban");
   const locale = useLocale();
-  const localeTag = locale === "hu" ? "hu-HU" : "sk-SK";
   const [logs, setLogs] = useState<ContactLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -192,7 +192,7 @@ export function ContactLogManager() {
                       )}
                     </TableCell>
                     <TableCell className="text-xs">
-                      {new Date(log.createdAt).toLocaleString(localeTag)}
+                      {fmtDateTime(new Date(log.createdAt), locale)}
                     </TableCell>
                   </TableRow>
                   {isExpanded && (

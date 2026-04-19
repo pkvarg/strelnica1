@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { fmtDateTime } from "@/lib/format";
 
 export default async function AuditLogPage({
   searchParams,
@@ -25,7 +26,6 @@ export default async function AuditLogPage({
   const t = await getTranslations("audit");
   const tCommon = await getTranslations("common");
   const locale = await getLocale();
-  const localeTag = locale === "hu" ? "hu-HU" : "sk-SK";
 
   const conditions = [];
   if (params.action) conditions.push(eq(auditLog.action, params.action));
@@ -102,7 +102,7 @@ export default async function AuditLogPage({
             {entries.map((e) => (
               <TableRow key={e.id}>
                 <TableCell className="whitespace-nowrap text-xs">
-                  {e.createdAt.toLocaleString(localeTag)}
+                  {fmtDateTime(e.createdAt, locale)}
                 </TableCell>
                 <TableCell className="text-xs">
                   {e.actorFirstName ? `${e.actorFirstName} ${e.actorLastName}` : "-"}

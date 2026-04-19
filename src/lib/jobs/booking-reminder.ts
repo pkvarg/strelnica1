@@ -3,6 +3,7 @@ import { bookings, users } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { notifyBookingReminder } from "@/lib/notify";
 import { createCheckInToken } from "@/lib/check-in-token";
+import { fmtDate, fmtTime } from "@/lib/format";
 import type { PgBoss } from "pg-boss";
 
 export const BOOKING_REMINDER = "booking.reminder";
@@ -38,8 +39,8 @@ export async function registerBookingReminderHandler(boss: PgBoss) {
         phone: user.phoneE164,
         memberName: `${user.firstName} ${user.lastName}`,
         rangeId: booking.rangeId,
-        date: booking.startsAt.toLocaleDateString("sk-SK"),
-        time: booking.startsAt.toLocaleTimeString("sk-SK", { hour: "2-digit", minute: "2-digit" }),
+        date: fmtDate(booking.startsAt, user.locale),
+        time: fmtTime(booking.startsAt, user.locale),
         checkInUrl,
         locale: user.locale,
         bookingId,

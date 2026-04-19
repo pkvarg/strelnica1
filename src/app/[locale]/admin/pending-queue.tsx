@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { approveBookingInline, declineBookingInline } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { fmtDate, fmtTime, fmtDateTime } from "@/lib/format";
 
 interface PendingBooking {
   id: string;
@@ -23,7 +24,6 @@ export function PendingQueue({ bookings }: { bookings: PendingBooking[] }) {
   const tAdmin = useTranslations("admin");
   const tCommon = useTranslations("common");
   const locale = useLocale();
-  const localeTag = locale === "hu" ? "hu-HU" : "sk-SK";
   const [decliningId, setDecliningId] = useState<string | null>(null);
   const [reason, setReason] = useState("");
 
@@ -44,18 +44,18 @@ export function PendingQueue({ bookings }: { bookings: PendingBooking[] }) {
               <p className="mt-1">
                 <span className="font-medium">{b.rangeId}</span>
                 {" — "}
-                {b.startsAt.toLocaleDateString(localeTag)}
+                {fmtDate(b.startsAt, locale)}
                 {" "}
-                {b.startsAt.toLocaleTimeString(localeTag, { hour: "2-digit", minute: "2-digit" })}
+                {fmtTime(b.startsAt, locale)}
                 {" - "}
-                {b.endsAt.toLocaleTimeString(localeTag, { hour: "2-digit", minute: "2-digit" })}
+                {fmtTime(b.endsAt, locale)}
                 {b.guestCount > 0 && ` ${tAdmin("guestsWithCount", { count: b.guestCount })}`}
               </p>
               {b.userNote && (
                 <p className="mt-1 text-xs text-zinc-500">{b.userNote}</p>
               )}
               <p className="mt-1 text-xs text-zinc-400">
-                {tAdmin("requestTime")}: {b.requestedAt.toLocaleString(localeTag)}
+                {tAdmin("requestTime")}: {fmtDateTime(b.requestedAt, locale)}
               </p>
             </div>
 

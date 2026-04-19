@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { checkInBookingAdmin } from "./actions";
 import { Button } from "@/components/ui/button";
+import { fmtTime } from "@/lib/format";
 
 interface TodayBooking {
   id: string;
@@ -26,7 +27,6 @@ export function TodaySchedule({ bookings }: { bookings: TodayBooking[] }) {
   const tBooking = useTranslations("booking");
   const tAdmin = useTranslations("admin");
   const locale = useLocale();
-  const localeTag = locale === "hu" ? "hu-HU" : "sk-SK";
 
   if (bookings.length === 0) {
     return <p className="text-sm text-zinc-500">-</p>;
@@ -41,15 +41,9 @@ export function TodaySchedule({ bookings }: { bookings: TodayBooking[] }) {
         >
           <span className="font-medium">{b.rangeId}</span>
           <span>
-            {b.startsAt.toLocaleTimeString(localeTag, {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            {fmtTime(b.startsAt, locale)}
             {" - "}
-            {b.endsAt.toLocaleTimeString(localeTag, {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            {fmtTime(b.endsAt, locale)}
           </span>
           <span>
             {b.userName} {b.userLastName}
