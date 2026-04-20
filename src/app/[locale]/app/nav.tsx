@@ -9,6 +9,8 @@ import {
   User,
   BarChart3,
   ShieldCheck,
+  Menu,
+  X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -35,6 +37,7 @@ interface NavLink {
 export function AppNav({ user, labels, locale }: AppNavProps) {
   const pathname = usePathname();
   const [pending, setPending] = useState<number>(0);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (user.role !== "admin") return;
@@ -55,6 +58,19 @@ export function AppNav({ user, labels, locale }: AppNavProps) {
     };
   }, [user.role]);
 
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
   const links: NavLink[] = [
     { href: `/${locale}/app`, label: labels.dashboard, icon: LayoutDashboard },
     { href: `/${locale}/app/rezervacie`, label: labels.bookings, icon: CalendarCheck },
@@ -62,8 +78,8 @@ export function AppNav({ user, labels, locale }: AppNavProps) {
     { href: `/${locale}/app/statistiky`, label: labels.statistics, icon: BarChart3 },
   ];
 
-  return (
-    <nav className="flex h-screen sticky top-0 w-56 flex-col border-r border-zinc-800 bg-zinc-900 p-4">
+  const navBody = (
+    <>
       <div className="mb-6 border-b border-zinc-800 pb-4">
         <p className="font-semibold text-zinc-100">{user.name}</p>
         <p className="text-xs text-zinc-500">{user.role === "admin" ? labels.roleAdmin : labels.roleMember}</p>
@@ -105,7 +121,48 @@ export function AppNav({ user, labels, locale }: AppNavProps) {
           );
         })}
       </div>
+    </>
+  );
 
-    </nav>
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label="Menu"
+        aria-expanded={open}
+        className="fixed top-20 left-3 z-40 inline-flex h-10 w-10 items-center justify-center rounded-md border border-zinc-800 bg-zinc-900/90 text-zinc-200 shadow-lg backdrop-blur md:hidden"
+      >
+        <Menu size={20} />
+      </button>
+
+      <nav className="sticky top-0 hidden h-screen w-56 flex-col border-r border-zinc-800 bg-zinc-900 p-4 md:flex">
+        {navBody}
+      </nav>
+
+      {open && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 md:hidden"
+          onClick={() => setOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      <nav
+        className={`fixed top-0 left-0 z-50 flex h-screen w-64 flex-col border-r border-zinc-800 bg-zinc-900 p-4 transition-transform duration-200 md:hidden ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+        aria-hidden={!open}
+      >
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          aria-label="Close menu"
+          className="absolute top-3 right-3 inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+        >
+          <X size={18} />
+        </button>
+        {navBody}
+      </nav>
+    </>
   );
 }

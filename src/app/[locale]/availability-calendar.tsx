@@ -40,13 +40,18 @@ function hourToMin(s: string): number {
   return h * 60 + (m || 0);
 }
 
-function computeFreeSlots(dr: DayRange): string[] {
+interface HourSlot {
+  hour: string;
+  taken: boolean;
+}
+
+function computeHourSlots(dr: DayRange): HourSlot[] {
   if (!dr.open || !dr.startTime || !dr.endTime) return [];
   const startMin = hourToMin(dr.startTime);
   const endMin = hourToMin(dr.endTime);
   const startHour = Math.ceil(startMin / 60);
   const endHour = Math.floor(endMin / 60);
-  const free: string[] = [];
+  const slots: HourSlot[] = [];
   for (let h = startHour; h < endHour; h++) {
     const slotStart = h * 60;
     const slotEnd = slotStart + 60;
@@ -55,9 +60,9 @@ function computeFreeSlots(dr: DayRange): string[] {
       const be = hourToMin(b.end);
       return bs < slotEnd && be > slotStart;
     });
-    if (!taken) free.push(`${String(h).padStart(2, "0")}:00`);
+    slots.push({ hour: `${String(h).padStart(2, "0")}:00`, taken });
   }
-  return free;
+  return slots;
 }
 
 function formatDay(dateStr: string, locale: string): string {
@@ -191,6 +196,10 @@ export function AvailabilityCalendar() {
           <span className="text-zinc-400">{t("available")}</span>
         </span>
         <span className="flex items-center gap-2">
+          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-rose-600" />
+          <span className="text-zinc-400">{t("booked")}</span>
+        </span>
+        <span className="flex items-center gap-2">
           <span className="inline-block h-2.5 w-2.5 rounded-sm bg-zinc-700" />
           <span className="text-zinc-400">{t("closed")}</span>
         </span>
@@ -285,7 +294,7 @@ function DayCell({ dr, date, locale, past, t, isAuthenticated }: DayCellProps) {
     );
   }
 
-  const freeSlots = computeFreeSlots(dr);
+  const slots = computeHourSlots(dr);
 
   if (dr.bookedSlots.length === 0) {
     if (past) {
@@ -305,30 +314,42 @@ function DayCell({ dr, date, locale, past, t, isAuthenticated }: DayCellProps) {
     );
   }
 
-  if (freeSlots.length === 0) {
+  if (slots.length === 0 || slots.every((s) => s.taken)) {
     return (
-      <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs font-medium text-zinc-500">
-        —
+      <span className="rounded bg-rose-600/15 px-2 py-0.5 text-xs font-medium text-rose-400 ring-1 ring-rose-600/30">
+        {t("booked")}
       </span>
     );
   }
 
   return (
     <div className="flex flex-wrap gap-1">
-      {freeSlots.map((s) => (
-        <Link
-          key={s}
-          href={past ? "#" : buildBookingHref(locale, isAuthenticated, dr.rangeId, date, s)}
-          aria-disabled={past}
-          className={
-            past
-              ? "rounded px-2 py-0.5 text-xs font-mono text-zinc-600 ring-1 ring-zinc-800"
-              : "rounded bg-emerald-600/15 px-2 py-0.5 text-xs font-mono text-emerald-400 ring-1 ring-emerald-600/30 transition-colors hover:bg-emerald-600/25 hover:text-emerald-300"
-          }
-        >
-          {s}
-        </Link>
-      ))}
+      {slots.map((s) => {
+        if (s.taken) {
+          return (
+            <span
+              key={s.hour}
+              className="rounded bg-rose-600/15 px-2 py-0.5 text-xs font-mono text-rose-400 ring-1 ring-rose-600/30"
+            >
+              {s.hour}
+            </span>
+          );
+        }
+        return (
+          <Link
+            key={s.hour}
+            href={past ? "#" : buildBookingHref(locale, isAuthenticated, dr.rangeId, date, s.hour)}
+            aria-disabled={past}
+            className={
+              past
+                ? "rounded px-2 py-0.5 text-xs font-mono text-zinc-600 ring-1 ring-zinc-800"
+                : "rounded bg-emerald-600/15 px-2 py-0.5 text-xs font-mono text-emerald-400 ring-1 ring-emerald-600/30 transition-colors hover:bg-emerald-600/25 hover:text-emerald-300"
+            }
+          >
+            {s.hour}
+          </Link>
+        );
+      })}
     </div>
   );
 }
