@@ -2,6 +2,7 @@ import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { AvailabilityCalendar } from "./availability-calendar";
 import { OpeningHoursPanel } from "./opening-hours-panel";
+import { CookieSettingsButton } from "./cookie-settings-button";
 import { OpenNowBadge } from "./open-now-badge";
 
 function TargetDecoration() {
@@ -159,6 +160,7 @@ export default function HomePage() {
               <Link href={`/${locale}/kontakt`} className="hover:text-zinc-300 transition-colors">
                 {t("common.contact")}
               </Link>
+              <CookieSettingsButton className="hover:text-zinc-300 transition-colors" />
             </div>
           </div>
           <div className="mt-8 flex flex-col items-center gap-2 border-t border-zinc-800 pt-6 text-center text-xs text-zinc-600 sm:flex-row sm:justify-between">
